@@ -8,7 +8,7 @@ Web app that interfaces with the Servants of the Secret Fire LED Canopy.
 
 ## Overview
 
-A Create React App (CRA) Typescript app renders a React frontend, which connects to the Unity app's
+A Vite + React TypeScript app renders a frontend, which connects to the Unity app's
 websocket server and sends events (client -> server). A simple Node websocket server can be used
 to log the output from the React app.
 
@@ -16,7 +16,7 @@ to log the output from the React app.
 
 ### Setup
 
-Ensure you have a recent version of Node (10 doesn't work, 16 does).
+Ensure you have a recent version of Node (18+ recommended).
 
 Install dependencies:
 
@@ -24,7 +24,7 @@ Install dependencies:
 
 ### Run
 
-Run the React server:
+Run the dev server:
 
 `npm start`
 
@@ -32,7 +32,7 @@ Either run the canopy app, or run the local websocket server:
 
 `npm run websocket`
 
-Visit: http://localhost:3000/
+Visit: http://localhost:5173/
 
 ### Tips
 
@@ -40,11 +40,11 @@ The React app connects to a websocket server on the same host that served the pa
 configured via an environment variable:
 
 ```
-REACT_APP_WEBSOCKET_PORT=9431
+VITE_WEBSOCKET_PORT=9431
 ```
 
 This value gets a default in `.env`. To override it, create a file `.env.local` and assign the
-override as desired. Re-run `npm start` to rebuild with the changed value.
+override as desired. Restart the dev server after changing env values.
 
 ## To do
 

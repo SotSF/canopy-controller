@@ -48,8 +48,7 @@ const hexStringToIntArray = (hexString: string) =>
     hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
   );
 
-const { REACT_APP_WEBSOCKET_PORT } = process.env;
-const websocketUrl = `ws://${window.location.hostname}:${REACT_APP_WEBSOCKET_PORT}`;
+const websocketUrl = `ws://${window.location.hostname}:${import.meta.env.VITE_WEBSOCKET_PORT}`;
 
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 500;
