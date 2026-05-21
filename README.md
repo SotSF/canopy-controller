@@ -8,9 +8,9 @@ Web app that interfaces with the Servants of the Secret Fire LED Canopy.
 
 ## Overview
 
-A Vite + React TypeScript app renders a frontend, which connects to the Unity app's
-websocket server and sends events (client -> server). A simple Node websocket server can be used
-to log the output from the React app.
+A Vite + React TypeScript app renders a frontend, which connects to the Unity
+app's websocket server and sends events (client -> server). A simple Node
+websocket server can be used to log the output from the React app.
 
 ## Development
 
@@ -36,17 +36,15 @@ Visit: http://localhost:3000/
 
 ### Tips
 
-The React app connects to a websocket server on the same host that served the page. The port is
-configured via an environment variable:
+The React app connects to a websocket server on the same host that served the
+page. The port is configured via an environment variable:
 
 ```
 VITE_WEBSOCKET_PORT=9431
 ```
 
-This value gets a default in `.env`. To override it, create a file `.env.local` and assign the
-override as desired. Restart the dev server after changing env values.
+This value gets a default in `.env`. To override it, create a file `.env.local`
+and assign the override as desired. Restart the dev server after changing env
+values.
 
 ## To do
-
-- size joystick smartly
-- smartly reconnect to websocket server
