@@ -9,7 +9,7 @@ Web app that interfaces with the Servants of the Secret Fire LED Canopy.
 ## Overview
 
 A Create React App (CRA) Typescript app renders a React frontend, which connects to the Unity app's
-websocket server and sends events (client -> server). A simple python websocket server can be used
+websocket server and sends events (client -> server). A simple Node websocket server can be used
 to log the output from the React app.
 
 ## Development
@@ -18,13 +18,9 @@ to log the output from the React app.
 
 Ensure you have a recent version of Node (10 doesn't work, 16 does).
 
-Install Javascript dependencies:
+Install dependencies:
 
 `npm install`
-
-Install Python dependencies:
-
-`cd websocketserver && pip3 install -r requirements.txt`
 
 ### Run
 
@@ -32,7 +28,7 @@ Run the React server:
 
 `npm start`
 
-Either run the canopy app, or run the python websocket server:
+Either run the canopy app, or run the local websocket server:
 
 `npm run websocket`
 
