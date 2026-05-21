@@ -1,5 +1,10 @@
 import { useRef, useState } from "react";
-import { clientPointToPolar, isInsideCircle, polarToPadPercent, Polar } from "../modules/polar";
+import {
+  clientPointToPolar,
+  isInsideCircle,
+  polarToPadPercent,
+  Polar,
+} from "../modules/polar";
 
 type TouchPositionPadProps = {
   color: string;
@@ -33,7 +38,13 @@ export const TouchPositionPad = ({
     if (!pad) return;
 
     const { centerX, centerY, radius } = getCircleGeometry(pad);
-    const position = clientPointToPolar(clientX, clientY, centerX, centerY, radius);
+    const position = clientPointToPolar(
+      clientX,
+      clientY,
+      centerX,
+      centerY,
+      radius,
+    );
     onPosition(position);
     setIndicator(polarToPadPercent(position));
   };
@@ -43,7 +54,9 @@ export const TouchPositionPad = ({
     if (!pad) return;
 
     const { centerX, centerY, radius } = getCircleGeometry(pad);
-    if (!isInsideCircle(event.clientX, event.clientY, centerX, centerY, radius)) {
+    if (
+      !isInsideCircle(event.clientX, event.clientY, centerX, centerY, radius)
+    ) {
       return;
     }
 
@@ -65,6 +78,8 @@ export const TouchPositionPad = ({
     setIndicator(null);
   };
 
+  const shipPercent = shipPosition ? polarToPadPercent(shipPosition) : null;
+
   return (
     <div
       ref={padRef}
@@ -79,12 +94,12 @@ export const TouchPositionPad = ({
       onPointerCancel={onPointerEnd}
       aria-label="Touch position control"
     >
-      {shipPosition && (
+      {shipPercent && (
         <div
           className="touch-position-pad-ship"
           style={{
-            left: `${polarToPadPercent(shipPosition).x}%`,
-            top: `${polarToPadPercent(shipPosition).y}%`,
+            left: `${shipPercent.x}%`,
+            top: `${shipPercent.y}%`,
           }}
           aria-hidden
         />

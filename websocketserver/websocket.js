@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 
-const DEBUG = true;
+const DEBUG = false;
 
 const PORT = Number(process.env.WEBSOCKET_PORT || 9431);
 const HOST = "0.0.0.0";
