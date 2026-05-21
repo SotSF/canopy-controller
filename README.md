@@ -32,7 +32,7 @@ Either run the canopy app, or run the local websocket server:
 
 `npm run websocket`
 
-Visit: http://localhost:5173/
+Visit: http://localhost:3000/
 
 ### Tips
 

@@ -9,8 +9,10 @@ import {
   reconnect,
   sendEvent,
   subscribeConnectionStatus,
+  subscribeShipPosition,
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
+import { cartesianToPolar, polarToPercent, Polar } from "./modules/polar";
 import { useDeviceOrientation } from "./modules/deviceOrientation";
 import { throttle } from "lodash";
 import "./App.css";
@@ -71,6 +73,16 @@ const sendCalibrationStatusEvent = (calibrated: boolean) =>
     calibrated,
   });
 
+const sendTouchPositionEvent = throttle(
+  (r: number, theta: number) =>
+    sendEvent({
+      event: EventType.TouchPosition,
+      r,
+      theta,
+    }),
+  eventThrottleMs,
+);
+
 const WifiIcon = ({ connected }: { connected: boolean }) => (
   <svg
     className={`status-icon ${connected ? "connected" : "disconnected"}`}
@@ -120,6 +132,12 @@ const useConnectionStatus = () => {
   const [status, setStatus] = useState<ConnectionStatus>("disconnected");
   useEffect(() => subscribeConnectionStatus(setStatus), []);
   return status;
+};
+
+const useShipPosition = () => {
+  const [position, setPosition] = useState<Polar | null>(null);
+  useEffect(() => subscribeShipPosition(setPosition), []);
+  return position;
 };
 
 const useFullscreen = () => {
@@ -174,6 +192,7 @@ function App() {
   const colorRef = useRef(color);
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
+  const shipPositionFromServer = useShipPosition();
   const { isFullscreen, toggle: toggleFullscreen, supported: fullscreenSupported } =
     useFullscreen();
   useAutoFullscreenOnTouch(fullscreenSupported);
@@ -223,6 +242,35 @@ function App() {
     sendChangeColorEvent(colorRef.current);
   }, [connectionStatus]);
 
+  useEffect(() => {
+    let pointerDown = false;
+
+    const onPointerDown = (event: PointerEvent) => {
+      pointerDown = true;
+      const { r, theta } = cartesianToPolar(event.clientX, event.clientY);
+      sendTouchPositionEvent(r, theta);
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!pointerDown) return;
+      const { r, theta } = cartesianToPolar(event.clientX, event.clientY);
+      sendTouchPositionEvent(r, theta);
+    };
+    const onPointerUp = () => {
+      pointerDown = false;
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+    document.addEventListener("pointercancel", onPointerUp);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerup", onPointerUp);
+      document.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, []);
+
   const onColorChange = (newColor: string) => {
     sendChangeColorEvent(newColor);
     recolorJoys(newColor);
@@ -253,6 +301,13 @@ function App() {
 
   return (
     <div className="App">
+      {shipPositionFromServer && (
+        <div
+          className="ship-position"
+          style={polarToPercent(shipPositionFromServer)}
+          aria-hidden
+        />
+      )}
       <div className="status-bar">
         {fullscreenSupported && (
           <button

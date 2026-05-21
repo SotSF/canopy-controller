@@ -1,3 +1,15 @@
+.ship-position {
+  position: fixed;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #60a5fa;
+  box-shadow: 0 0 12px 2px #60a5fa;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 5;
+}
+
 .App {
   display: flex;
   flex-direction: column;
