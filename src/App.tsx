@@ -12,7 +12,7 @@ import {
   subscribeShipPosition,
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
-import { polarToPercent, Polar } from "./modules/polar";
+import { Polar } from "./modules/polar";
 import { TouchPositionPad } from "./components/TouchPositionPad";
 import { useDeviceOrientation } from "./modules/deviceOrientation";
 import { throttle } from "lodash";
@@ -273,13 +273,6 @@ function App() {
 
   return (
     <div className="App">
-      {shipPositionFromServer && (
-        <div
-          className="ship-position"
-          style={polarToPercent(shipPositionFromServer)}
-          aria-hidden
-        />
-      )}
       <div className="status-bar">
         {fullscreenSupported && (
           <button
@@ -376,6 +369,7 @@ function App() {
         <>
           <TouchPositionPad
             color={color}
+            shipPosition={shipPositionFromServer}
             onPosition={({ r, theta }) => sendTouchPositionEvent(r, theta)}
           />
           <div className="button-wrapper">

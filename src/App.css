@@ -1,5 +1,5 @@
-.ship-position {
-  position: fixed;
+.touch-position-pad-ship {
+  position: absolute;
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -7,7 +7,6 @@
   box-shadow: 0 0 12px 2px #60a5fa;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 5;
 }
 
 .App {

@@ -1,4 +1,6 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
+
+const DEBUG = true;
 
 const PORT = Number(process.env.WEBSOCKET_PORT || 9431);
 const HOST = "0.0.0.0";
@@ -50,10 +52,7 @@ const formatEvent = (buffer) => {
       break;
     case EventType.ChangeColor:
       if (buffer.length >= 4) {
-        payload = `#${buffer
-          .slice(1, 4)
-          .toString("hex")
-          .padStart(6, "0")}`;
+        payload = `#${buffer.slice(1, 4).toString("hex").padStart(6, "0")}`;
       }
       break;
     case EventType.Press:
@@ -98,9 +97,19 @@ const formatEvent = (buffer) => {
   return `${name} (${hex})`;
 };
 
+const encodeShipPosition = (r, theta) => {
+  const buffer = Buffer.alloc(9);
+  buffer[0] = EventType.ShipPosition;
+  buffer.writeFloatLE(r, 1);
+  buffer.writeFloatLE(theta, 5);
+  return buffer;
+};
+
 const wss = new WebSocketServer({ host: HOST, port: PORT });
+const clients = new Set();
 
 wss.on("connection", (ws) => {
+  clients.add(ws);
   console.log("Connection opened");
 
   ws.on("message", (data) => {
@@ -112,8 +121,26 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
+    clients.delete(ws);
     console.log("Connection closed");
   });
 });
 
+if (DEBUG) {
+  setInterval(() => {
+    const r = Math.random();
+    const theta = Math.random() * Math.PI * 2 - Math.PI;
+    const message = encodeShipPosition(r, theta);
+    console.log("< Sent", formatEvent(message));
+    for (const ws of clients) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(message);
+      }
+    }
+  }, 5000);
+}
+
 console.log(`WebSocket server listening on ws://${HOST}:${PORT}`);
+if (DEBUG) {
+  console.log("Debug mode: sending ShipPosition every 5s");
+}

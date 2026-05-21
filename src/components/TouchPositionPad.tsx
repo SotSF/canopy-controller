@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { clientPointToPolar, isInsideCircle, Polar } from "../modules/polar";
+import { clientPointToPolar, isInsideCircle, polarToPadPercent, Polar } from "../modules/polar";
 
 type TouchPositionPadProps = {
   color: string;
+  shipPosition: Polar | null;
   onPosition: (position: Polar) => void;
 };
 
@@ -16,7 +17,11 @@ const getCircleGeometry = (element: HTMLDivElement) => {
   };
 };
 
-export const TouchPositionPad = ({ color, onPosition }: TouchPositionPadProps) => {
+export const TouchPositionPad = ({
+  color,
+  shipPosition,
+  onPosition,
+}: TouchPositionPadProps) => {
   const padRef = useRef<HTMLDivElement>(null);
   const activePointerId = useRef<number | null>(null);
   const [indicator, setIndicator] = useState<{ x: number; y: number } | null>(
@@ -30,16 +35,7 @@ export const TouchPositionPad = ({ color, onPosition }: TouchPositionPadProps) =
     const { centerX, centerY, radius } = getCircleGeometry(pad);
     const position = clientPointToPolar(clientX, clientY, centerX, centerY, radius);
     onPosition(position);
-
-    const dx = clientX - centerX;
-    const dy = clientY - centerY;
-    const distance = Math.hypot(dx, dy);
-    const clampedDistance = Math.min(distance, radius);
-    const angle = Math.atan2(dy, dx);
-    setIndicator({
-      x: 50 + (clampedDistance / radius) * 50 * Math.cos(angle),
-      y: 50 + (clampedDistance / radius) * 50 * Math.sin(angle),
-    });
+    setIndicator(polarToPadPercent(position));
   };
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -83,6 +79,16 @@ export const TouchPositionPad = ({ color, onPosition }: TouchPositionPadProps) =
       onPointerCancel={onPointerEnd}
       aria-label="Touch position control"
     >
+      {shipPosition && (
+        <div
+          className="touch-position-pad-ship"
+          style={{
+            left: `${polarToPadPercent(shipPosition).x}%`,
+            top: `${polarToPadPercent(shipPosition).y}%`,
+          }}
+          aria-hidden
+        />
+      )}
       {indicator && (
         <div
           className="touch-position-pad-indicator"
