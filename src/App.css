@@ -76,8 +76,8 @@
 }
 
 .color-container {
-  margin-top: 2em;
-  margin-bottom: 2em;
+  margin-top: 0;
+  margin-bottom: 0;
   width: 100vw;
   display: flex;
   justify-content: space-evenly;
@@ -143,6 +143,10 @@ body.calibrating .joystick-container {
   display: none;
 }
 
+body.joysticks-hidden footer {
+  display: none;
+}
+
 .calibration-container {
   display: flex;
   width: 100vw;
@@ -189,4 +193,127 @@ body.calibrating .joystick-container {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+.ui-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.ui-section--hidden {
+  min-height: 1.25rem;
+}
+
+.ui-section-toggle {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: calc(50% - 6.5rem);
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  opacity: 0.18;
+  line-height: 0;
+  transition: opacity 150ms ease;
+}
+
+.ui-section-toggle:hover,
+.ui-section-toggle:focus-visible {
+  opacity: 0.5;
+}
+
+.ui-section--hidden .ui-section-toggle {
+  position: static;
+  margin: 0.15rem 0;
+}
+
+.ui-section-chevron {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid silver;
+  border-right: 1.5px solid silver;
+  transform: rotate(-45deg);
+  transition: transform 150ms ease;
+}
+
+.ui-section--hidden .ui-section-chevron {
+  transform: rotate(135deg);
+}
+
+.ui-section--color-wheel {
+  margin: 1.5em 0;
+}
+
+.ui-section--color-wheel .ui-section-toggle {
+  right: calc(50% - 5.5rem);
+  top: -0.25rem;
+}
+
+.ui-section--color-presets {
+  margin: 2em 0;
+}
+
+.ui-section--color-presets .ui-section-toggle {
+  top: -1.25rem;
+  right: 1rem;
+}
+
+.ui-section--gyro {
+  margin-bottom: 1em;
+}
+
+.ui-section--gyro .ui-section-toggle {
+  top: 50%;
+  right: calc(50% - 7rem);
+  transform: translateY(-50%);
+}
+
+.ui-section--calibration {
+  margin-top: 1em;
+}
+
+.ui-section--calibration .ui-section-toggle {
+  top: -0.5rem;
+  right: calc(50% - 12rem);
+}
+
+.ui-section--touch-pad .ui-section-toggle {
+  top: 0.75rem;
+  right: calc(50% - 6.5rem);
+}
+
+.ui-section--action-buttons {
+  width: 100%;
+}
+
+.ui-section--action-buttons .ui-section-toggle {
+  top: -0.5rem;
+  right: 1rem;
+}
+
+.ui-section--joysticks {
+  width: 100%;
+  max-width: 800px;
+  min-height: 0;
+  margin-top: 0.5rem;
+}
+
+.ui-section--joysticks .ui-section-toggle {
+  position: static;
+  margin: 0.25rem auto 0;
+}
+
+.ui-section--joysticks:not(.ui-section--hidden) .ui-section-toggle {
+  position: absolute;
+  top: auto;
+  bottom: -1.5rem;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  margin: 0;
 }
