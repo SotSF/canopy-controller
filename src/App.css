@@ -169,3 +169,24 @@ body.calibrating .joystick-container {
   color: #4ade80;
   font-weight: bold;
 }
+
+.touch-position-pad {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 2px solid grey;
+  touch-action: none;
+  position: relative;
+  margin-top: 1em;
+  cursor: crosshair;
+  flex-shrink: 0;
+}
+
+.touch-position-pad-indicator {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}

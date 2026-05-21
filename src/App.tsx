@@ -12,7 +12,8 @@ import {
   subscribeShipPosition,
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
-import { cartesianToPolar, polarToPercent, Polar } from "./modules/polar";
+import { polarToPercent, Polar } from "./modules/polar";
+import { TouchPositionPad } from "./components/TouchPositionPad";
 import { useDeviceOrientation } from "./modules/deviceOrientation";
 import { throttle } from "lodash";
 import "./App.css";
@@ -242,35 +243,6 @@ function App() {
     sendChangeColorEvent(colorRef.current);
   }, [connectionStatus]);
 
-  useEffect(() => {
-    let pointerDown = false;
-
-    const onPointerDown = (event: PointerEvent) => {
-      pointerDown = true;
-      const { r, theta } = cartesianToPolar(event.clientX, event.clientY);
-      sendTouchPositionEvent(r, theta);
-    };
-    const onPointerMove = (event: PointerEvent) => {
-      if (!pointerDown) return;
-      const { r, theta } = cartesianToPolar(event.clientX, event.clientY);
-      sendTouchPositionEvent(r, theta);
-    };
-    const onPointerUp = () => {
-      pointerDown = false;
-    };
-
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("pointermove", onPointerMove);
-    document.addEventListener("pointerup", onPointerUp);
-    document.addEventListener("pointercancel", onPointerUp);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("pointermove", onPointerMove);
-      document.removeEventListener("pointerup", onPointerUp);
-      document.removeEventListener("pointercancel", onPointerUp);
-    };
-  }, []);
-
   const onColorChange = (newColor: string) => {
     sendChangeColorEvent(newColor);
     recolorJoys(newColor);
@@ -401,7 +373,12 @@ function App() {
           </button>
         </div>
       ) : (
-        <div className="button-wrapper">
+        <>
+          <TouchPositionPad
+            color={color}
+            onPosition={({ r, theta }) => sendTouchPositionEvent(r, theta)}
+          />
+          <div className="button-wrapper">
           <div className="button-container">
             <button
               className="button"
@@ -424,7 +401,8 @@ function App() {
               R
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

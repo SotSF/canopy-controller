@@ -6,6 +6,29 @@ const viewportCenter = () => ({
   maxR: Math.hypot(window.innerWidth / 2, window.innerHeight / 2),
 });
 
+export const clientPointToPolar = (
+  clientX: number,
+  clientY: number,
+  centerX: number,
+  centerY: number,
+  radius: number,
+): Polar => {
+  const dx = clientX - centerX;
+  const dy = clientY - centerY;
+  return {
+    r: radius === 0 ? 0 : Math.min(1, Math.hypot(dx, dy) / radius),
+    theta: Math.atan2(dy, dx),
+  };
+};
+
+export const isInsideCircle = (
+  clientX: number,
+  clientY: number,
+  centerX: number,
+  centerY: number,
+  radius: number,
+) => Math.hypot(clientX - centerX, clientY - centerY) <= radius;
+
 export const cartesianToPolar = (clientX: number, clientY: number): Polar => {
   const { cx, cy, maxR } = viewportCenter();
   const dx = clientX - cx;
