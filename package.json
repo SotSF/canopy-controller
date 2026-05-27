@@ -12,7 +12,7 @@
     "react-switch": "^7.0.0"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite --host 0.0.0.0",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
