@@ -161,6 +161,8 @@ export const TouchPositionPad = ({
                 style={{
                   left: `${shipPercent.x}%`,
                   top: `${shipPercent.y}%`,
+                  backgroundColor: color,
+                  boxShadow: `0 0 12px 2px ${color}`,
                 }}
                 aria-hidden
               />
@@ -171,9 +173,8 @@ export const TouchPositionPad = ({
                 style={{
                   left: `${indicator.x}%`,
                   top: `${indicator.y}%`,
-                  backgroundColor: color,
-                  boxShadow: `0 0 12px 2px ${color}`,
                 }}
+                aria-hidden
               />
             )}
           </div>

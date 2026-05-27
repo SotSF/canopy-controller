@@ -1,7 +1,6 @@
 import chroma from "chroma-js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactSwitch from "react-switch";
-import Wheel from "@uiw/react-color-wheel";
 import {
   Button,
   ConnectionStatus,
@@ -13,9 +12,13 @@ import {
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
 import { normalizeRadians, Polar } from "./modules/polar";
+import { ColorPickerPanel } from "./components/ColorPickerPanel";
 import { TouchPositionPad } from "./components/TouchPositionPad";
-import { CollapsibleSection } from "./components/CollapsibleSection";
-import { useUiVisibility } from "./hooks/useUiVisibility";
+import {
+  controlSchemeLabels,
+  ControlScheme,
+} from "./modules/controlScheme";
+import { useControlScheme } from "./hooks/useControlScheme";
 import { useDeviceOrientation } from "./modules/deviceOrientation";
 import { throttle } from "lodash";
 import "./App.css";
@@ -112,25 +115,6 @@ const WifiIcon = ({ connected }: { connected: boolean }) => (
   </svg>
 );
 
-const FullscreenIcon = ({ active }: { active: boolean }) => (
-  <svg
-    className="status-icon"
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    aria-label={active ? "Exit fullscreen" : "Enter fullscreen"}
-  >
-    <path
-      fill="currentColor"
-      d={
-        active
-          ? "M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
-          : "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"
-      }
-    />
-  </svg>
-);
-
 const useConnectionStatus = () => {
   const [status, setStatus] = useState<ConnectionStatus>("disconnected");
   useEffect(() => subscribeConnectionStatus(setStatus), []);
@@ -141,45 +125,6 @@ const useShipPosition = () => {
   const [position, setPosition] = useState<Polar | null>(null);
   useEffect(() => subscribeShipPosition(setPosition), []);
   return position;
-};
-
-const useFullscreen = () => {
-  const [isFullscreen, setIsFullscreen] = useState(
-    () => document.fullscreenElement !== null,
-  );
-
-  useEffect(() => {
-    const onChange = () => setIsFullscreen(document.fullscreenElement !== null);
-    document.addEventListener("fullscreenchange", onChange);
-    return () => document.removeEventListener("fullscreenchange", onChange);
-  }, []);
-
-  const toggle = useCallback(() => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      document.documentElement.requestFullscreen().catch(() => {});
-    }
-  }, []);
-
-  const supported = typeof document.documentElement.requestFullscreen === "function";
-  return { isFullscreen, toggle, supported };
-};
-
-// Fullscreen API requires a user gesture, so we can't auto-enter on mount.
-// On touch devices, enter fullscreen on the user's first tap instead.
-const useAutoFullscreenOnTouch = (supported: boolean) => {
-  useEffect(() => {
-    if (!supported) return;
-    if (!window.matchMedia("(pointer: coarse)").matches) return;
-    if (document.fullscreenElement) return;
-
-    const enter = () => {
-      document.documentElement.requestFullscreen().catch(() => {});
-    };
-    document.addEventListener("touchstart", enter, { once: true, passive: true });
-    return () => document.removeEventListener("touchstart", enter);
-  }, [supported]);
 };
 
 function App() {
@@ -198,10 +143,7 @@ function App() {
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
   const shipPositionFromServer = useShipPosition();
-  const { isFullscreen, toggle: toggleFullscreen, supported: fullscreenSupported } =
-    useFullscreen();
-  useAutoFullscreenOnTouch(fullscreenSupported);
-  const { visibility, toggle: toggleSection } = useUiVisibility();
+  const { scheme, selectScheme } = useControlScheme();
 
   const { requestAccess, revokeAccess } = useDeviceOrientation();
 
@@ -230,20 +172,16 @@ function App() {
 
   useEffect(() => {
     document.body.classList.toggle("calibrating", !calibrated);
-    // Draw joysticks only after their container is visible. Reading
-    // clientWidth in the JoyStick constructor returns 0 for a display:none
-    // container, which produces a negative internalRadius and corrupts the
-    // instance permanently.
-    if (calibrated) drawJoys(colorRef.current);
     return () => document.body.classList.remove("calibrating");
   }, [calibrated]);
 
   useEffect(() => {
-    document.body.classList.toggle("joysticks-hidden", !visibility.joysticks);
-    if (visibility.joysticks && calibrated) {
+    const showJoysticks = calibrated && scheme === "joysticks";
+    document.body.classList.toggle("joysticks-hidden", !showJoysticks);
+    if (showJoysticks) {
       drawJoys(colorRef.current);
     }
-  }, [visibility.joysticks, calibrated]);
+  }, [calibrated, scheme]);
 
   useEffect(() => {
     if (connectionStatus !== "connected") return;
@@ -292,18 +230,11 @@ function App() {
     if (delta !== 0) sendRotateEvent(delta);
   };
 
+  const controlSchemes = Object.keys(controlSchemeLabels) as ControlScheme[];
+
   return (
     <div className="App">
       <div className="status-bar">
-        {fullscreenSupported && (
-          <button
-            type="button"
-            className="status-button"
-            onClick={toggleFullscreen}
-          >
-            <FullscreenIcon active={isFullscreen} />
-          </button>
-        )}
         {connectionStatus === "connected" ? (
           <WifiIcon connected />
         ) : (
@@ -317,81 +248,18 @@ function App() {
           </button>
         )}
       </div>
-      {calibrated && (
-        <CollapsibleSection
-          visible={visibility.gyroToggle}
-          onToggle={() => toggleSection("gyroToggle")}
-          label="Gyro mode"
-          className="ui-section--gyro"
-        >
-          <label className="gyro-toggle-container">
-            <ReactSwitch
-              onChange={(sensorModeEnabled) => {
-                setGyroMode(sensorModeEnabled);
-                if (sensorModeEnabled) requestAccess();
-                else revokeAccess();
-              }}
-              checked={gyroMode}
-              className="gyro-toggle"
-            />
-            <span>Gyro mode</span>
-          </label>
-        </CollapsibleSection>
-      )}
-      <CollapsibleSection
-        visible={visibility.colorWheel}
-        onToggle={() => toggleSection("colorWheel")}
-        label="Color wheel"
-        className="ui-section--color-wheel"
-      >
-        <Wheel width={175} height={175} color={hsva} onChange={onHsvaChange} />
-      </CollapsibleSection>
-      <CollapsibleSection
-        visible={visibility.colorPresets}
-        onToggle={() => toggleSection("colorPresets")}
-        label="Color presets"
-        className="ui-section--color-presets"
-      >
-        <div className="color-container">
-          {colorScale.map((value, index) => (
-            <div
-              key={index}
-              className={`color ${selection === index ? "selected" : ""}`}
-              tabIndex={0}
-              style={{
-                backgroundColor: value,
-                boxShadow: `0 0 15px 2px ${value}`,
-              }}
-              // Use onTouchStart for snappy controls and to handle multitouch situations
-              onTouchStart={() => onPresetSelect(value, index)}
-              // On mobile, to avoid sending to events, ignore onClick
-              onClick={() =>
-                !("ontouchstart" in document.documentElement) &&
-                onPresetSelect(value, index)
-              }
-            />
-          ))}
-          <div
-            className={`color ${selection === "custom" ? "selected" : ""}`}
-            tabIndex={0}
-            style={{
-              backgroundColor: customColor,
-              boxShadow: `0 0 15px 2px ${customColor}`,
-            }}
-            onTouchStart={onCustomSelect}
-            onClick={() =>
-              !("ontouchstart" in document.documentElement) && onCustomSelect()
-            }
-          />
-        </div>
-      </CollapsibleSection>
+
       {!calibrated ? (
-        <CollapsibleSection
-          visible={visibility.calibration}
-          onToggle={() => toggleSection("calibration")}
-          label="Calibration"
-          className="ui-section--calibration"
-        >
+        <div className="control-panel control-panel--initial">
+          <ColorPickerPanel
+            hsva={hsva}
+            colorScale={colorScale}
+            selection={selection}
+            customColor={customColor}
+            onHsvaChange={onHsvaChange}
+            onPresetSelect={onPresetSelect}
+            onCustomSelect={onCustomSelect}
+          />
           <div className="calibration-container">
             <button
               type="button"
@@ -413,61 +281,95 @@ function App() {
               ✓
             </button>
           </div>
-        </CollapsibleSection>
+        </div>
       ) : (
         <>
-          <CollapsibleSection
-            visible={visibility.touchPad}
-            onToggle={() => toggleSection("touchPad")}
-            label="Touch pad"
-            className="ui-section--touch-pad"
+          <div
+            className="control-scheme-tabs"
+            role="tablist"
+            aria-label="Control scheme"
           >
-            <TouchPositionPad
-              color={color}
-              padRotation={padRotation}
-              shipPosition={shipPositionFromServer}
-              onPosition={({ r, theta }) => sendTouchPositionEvent(r, theta)}
-              onRotationPreview={onPadRotationPreview}
-              onRotationCommit={onPadRotationCommit}
-            />
-          </CollapsibleSection>
-          <CollapsibleSection
-            visible={visibility.actionButtons}
-            onToggle={() => toggleSection("actionButtons")}
-            label="Action buttons"
-            className="ui-section--action-buttons"
-          >
-            <div className="button-wrapper">
-              <div className="button-container">
-                <button
-                  className="button"
-                  onTouchStart={() => sendButtonPressEvent(Button.L)}
-                  onClick={() =>
-                    !("ontouchstart" in document.documentElement) &&
-                    sendButtonPressEvent(Button.L)
-                  }
-                >
-                  L
-                </button>
-                <button
-                  className="button"
-                  onTouchStart={() => sendButtonPressEvent(Button.R)}
-                  onClick={() =>
-                    !("ontouchstart" in document.documentElement) &&
-                    sendButtonPressEvent(Button.R)
-                  }
-                >
-                  R
-                </button>
+            {controlSchemes.map((key) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={scheme === key}
+                className={`control-scheme-tab${scheme === key ? " control-scheme-tab--active" : ""}`}
+                onClick={() => selectScheme(key)}
+              >
+                {controlSchemeLabels[key]}
+              </button>
+            ))}
+          </div>
+
+          {scheme === "colorPicker" && (
+            <div className="control-panel control-panel--color-picker">
+              <ColorPickerPanel
+                hsva={hsva}
+                colorScale={colorScale}
+                selection={selection}
+                customColor={customColor}
+                onHsvaChange={onHsvaChange}
+                onPresetSelect={onPresetSelect}
+                onCustomSelect={onCustomSelect}
+              />
+            </div>
+          )}
+
+          {scheme === "globalPosition" && (
+            <div className="control-panel control-panel--global-position">
+              <TouchPositionPad
+                color={color}
+                padRotation={padRotation}
+                shipPosition={shipPositionFromServer}
+                onPosition={({ r, theta }) => sendTouchPositionEvent(r, theta)}
+                onRotationPreview={onPadRotationPreview}
+                onRotationCommit={onPadRotationCommit}
+              />
+            </div>
+          )}
+
+          {scheme === "joysticks" && (
+            <div className="control-panel control-panel--joysticks">
+              <label className="gyro-toggle-container">
+                <ReactSwitch
+                  onChange={(sensorModeEnabled) => {
+                    setGyroMode(sensorModeEnabled);
+                    if (sensorModeEnabled) requestAccess();
+                    else revokeAccess();
+                  }}
+                  checked={gyroMode}
+                  className="gyro-toggle"
+                />
+                <span>Gyro mode</span>
+              </label>
+              <div className="button-wrapper">
+                <div className="button-container">
+                  <button
+                    className="button"
+                    onTouchStart={() => sendButtonPressEvent(Button.L)}
+                    onClick={() =>
+                      !("ontouchstart" in document.documentElement) &&
+                      sendButtonPressEvent(Button.L)
+                    }
+                  >
+                    L
+                  </button>
+                  <button
+                    className="button"
+                    onTouchStart={() => sendButtonPressEvent(Button.R)}
+                    onClick={() =>
+                      !("ontouchstart" in document.documentElement) &&
+                      sendButtonPressEvent(Button.R)
+                    }
+                  >
+                    R
+                  </button>
+                </div>
               </div>
             </div>
-          </CollapsibleSection>
-          <CollapsibleSection
-            visible={visibility.joysticks}
-            onToggle={() => toggleSection("joysticks")}
-            label="Joysticks"
-            className="ui-section--joysticks"
-          />
+          )}
         </>
       )}
     </div>

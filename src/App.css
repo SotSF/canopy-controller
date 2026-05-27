@@ -3,8 +3,6 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: #60a5fa;
-  box-shadow: 0 0 12px 2px #60a5fa;
   transform: translate(-50%, -50%);
   pointer-events: none;
   transition:
@@ -14,8 +12,14 @@
 
 .App {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 0 0.5rem 0.75rem;
   font-size: calc(10px + 2vmin);
 }
 
@@ -82,9 +86,13 @@
 .color-container {
   margin-top: 0;
   margin-bottom: 0;
-  width: 100vw;
+  width: 100%;
+  max-width: min(100%, 800px);
   display: flex;
   justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  box-sizing: border-box;
 }
 
 .color {
@@ -103,8 +111,10 @@
 
 .button-wrapper {
   display: flex;
-  width: 100vw;
+  width: 100%;
+  max-width: min(100%, 800px);
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .button-container {
@@ -130,10 +140,12 @@
 }
 
 .joystick-container {
+  width: 100%;
   max-width: 800px;
   display: flex;
   flex-grow: 1;
   justify-content: space-between;
+  box-sizing: border-box;
 }
 
 .joystick {
@@ -153,10 +165,11 @@ body.joysticks-hidden footer {
 
 .calibration-container {
   display: flex;
-  width: 100vw;
-  max-width: 800px;
+  width: 100%;
+  max-width: min(100%, 800px);
   justify-content: space-evenly;
   margin-top: 1em;
+  box-sizing: border-box;
 }
 
 .calibration-button {
@@ -179,15 +192,20 @@ body.joysticks-hidden footer {
 }
 
 .touch-position-pad-stack {
+  --touch-pad-ui-offset: 10rem;
+  --touch-pad-size: min(
+    calc(100vw - 1rem),
+    calc(100dvh - var(--touch-pad-ui-offset))
+  );
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 1em;
+  width: 100%;
 }
 
 .touch-position-pad-stage {
-  width: 200px;
-  height: 200px;
+  width: var(--touch-pad-size);
+  height: var(--touch-pad-size);
   position: relative;
   flex-shrink: 0;
 }
@@ -214,8 +232,8 @@ body.joysticks-hidden footer {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: 200px;
-  margin-top: 2.75em;
+  width: var(--touch-pad-size);
+  margin-top: 0.75em;
   gap: 0.35em;
   color: silver;
   font-size: 0.65rem;
@@ -236,129 +254,157 @@ body.joysticks-hidden footer {
   width: 24px;
   height: 24px;
   border-radius: 50%;
+  background-color: #60a5fa;
+  box-shadow: 0 0 14px 3px #60a5fa;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
-.ui-section {
-  position: relative;
+.control-scheme-tabs {
+  display: flex;
+  width: 100%;
+  max-width: min(100%, 800px);
+  margin: 0.5em 0 0.75em;
+  border-bottom: 1px solid #404040;
+  box-sizing: border-box;
+}
+
+.control-scheme-tab {
+  flex: 1;
+  padding: 0.55em 0.35em;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  color: #a3a3a3;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+
+.control-scheme-tab--active {
+  color: #e5e5e5;
+  border-bottom-color: #e5e5e5;
+}
+
+.control-scheme-tab:hover {
+  color: #d4d4d4;
+}
+
+.control-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
 }
 
-.ui-section--hidden {
-  min-height: 1.25rem;
+.color-picker-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5em;
+  width: 100%;
 }
 
-.ui-section-toggle {
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  right: calc(50% - 6.5rem);
-  padding: 4px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  opacity: 0.18;
-  line-height: 0;
-  transition: opacity 150ms ease;
+.control-panel--color-picker {
+  margin-top: 0.5em;
 }
 
-.ui-section-toggle:hover,
-.ui-section-toggle:focus-visible {
-  opacity: 0.5;
-}
-
-.ui-section--hidden .ui-section-toggle {
-  position: static;
-  margin: 0.15rem 0;
-}
-
-.ui-section-chevron {
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-top: 1.5px solid silver;
-  border-right: 1.5px solid silver;
-  transform: rotate(-45deg);
-  transition: transform 150ms ease;
-}
-
-.ui-section--hidden .ui-section-chevron {
-  transform: rotate(135deg);
-}
-
-.ui-section--color-wheel {
-  margin: 1.5em 0;
-}
-
-.ui-section--color-wheel .ui-section-toggle {
-  right: calc(50% - 5.5rem);
-  top: -0.25rem;
-}
-
-.ui-section--color-presets {
-  margin: 2em 0;
-}
-
-.ui-section--color-presets .ui-section-toggle {
-  top: -1.25rem;
-  right: 1rem;
-}
-
-.ui-section--gyro {
+.control-panel--color-picker .color-container {
   margin-bottom: 1em;
 }
 
-.ui-section--gyro .ui-section-toggle {
-  top: 50%;
-  right: calc(50% - 7rem);
-  transform: translateY(-50%);
+.control-panel--initial {
+  margin-top: 0.5em;
+  gap: 1.5em;
 }
 
-.ui-section--calibration {
-  margin-top: 1em;
+.control-panel--initial .calibration-container {
+  margin-top: 0;
 }
 
-.ui-section--calibration .ui-section-toggle {
-  top: -0.5rem;
-  right: calc(50% - 12rem);
-}
-
-.ui-section--touch-pad .ui-section-toggle {
-  top: 0.75rem;
-  right: calc(50% - 6.5rem);
-}
-
-.ui-section--action-buttons {
+.control-panel--global-position {
   width: 100%;
-}
-
-.ui-section--action-buttons .ui-section-toggle {
-  top: -0.5rem;
-  right: 1rem;
-}
-
-.ui-section--joysticks {
-  width: 100%;
-  max-width: 800px;
+  flex: 1;
   min-height: 0;
-  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }
 
-.ui-section--joysticks .ui-section-toggle {
-  position: static;
-  margin: 0.25rem auto 0;
+.control-panel--joysticks {
+  margin-top: 0.5em;
 }
 
-.ui-section--joysticks:not(.ui-section--hidden) .ui-section-toggle {
-  position: absolute;
-  top: auto;
-  bottom: -1.5rem;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  margin: 0;
+.control-panel--joysticks .button-wrapper {
+  margin-top: 0.5em;
 }
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .App {
+    font-size: calc(8px + 1.25vmin);
+    padding: 0 0.35rem 0.35rem;
+  }
+
+  .control-scheme-tabs {
+    margin: 0.25em 0 0.35em;
+  }
+
+  .control-scheme-tab {
+    font-size: 0.62rem;
+    padding: 0.4em 0.2em;
+  }
+
+  .color-picker-panel {
+    gap: 0.5em;
+  }
+
+  .color-picker-panel .w-color-wheel {
+    transform: scale(0.72);
+    transform-origin: top center;
+    margin-bottom: -1.25em;
+  }
+
+  .color {
+    width: 1.65em;
+    height: 1.65em;
+  }
+
+  .control-panel--initial {
+    gap: 0.5em;
+  }
+
+  .calibration-button {
+    width: 3em;
+    height: 3em;
+    font-size: 1.2em;
+  }
+
+  .touch-position-pad-stack {
+    --touch-pad-ui-offset: 5.5rem;
+  }
+
+  .button {
+    width: 4.5em;
+    height: 2.5em;
+    margin-left: 0.75em;
+    margin-right: 0.75em;
+  }
+
+  .joystick {
+    width: min(7.5rem, 36dvh);
+    height: min(7.5rem, 36dvh);
+    margin-top: 0.25em;
+  }
+
+  .joystick-container {
+    padding: 0 0.25rem;
+    gap: 0.25rem;
+  }
+}
+
