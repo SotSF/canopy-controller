@@ -8,7 +8,17 @@ interface Joy {
 
 export let joyL: Joy | undefined;
 export let joyR: Joy | undefined;
+
+const joystickContainerReady = (id: string) => {
+  const element = document.getElementById(id);
+  return element !== null && element.clientWidth > 0 && element.clientHeight > 0;
+};
+
 export const drawJoys = (color: string) => {
+  if (!joystickContainerReady("joystickL") || !joystickContainerReady("joystickR")) {
+    return;
+  }
+
   document.getElementById("joystickLCanvas")?.remove();
   document.getElementById("joystickRCanvas")?.remove();
 

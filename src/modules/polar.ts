@@ -27,3 +27,12 @@ export const polarToPadPercent = ({ r, theta }: Polar) => ({
   x: 50 + r * 50 * Math.cos(theta),
   y: 50 + r * 50 * Math.sin(theta),
 });
+
+/** Wrap radians to [-π, π] for range inputs and trig. */
+export const normalizeRadians = (radians: number) => {
+  const twoPi = Math.PI * 2;
+  let angle = radians % twoPi;
+  if (angle > Math.PI) angle -= twoPi;
+  if (angle < -Math.PI) angle += twoPi;
+  return angle;
+};
