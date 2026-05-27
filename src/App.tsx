@@ -12,7 +12,7 @@ import {
   subscribeShipPosition,
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
-import { Polar } from "./modules/polar";
+import { normalizeRadians, Polar } from "./modules/polar";
 import { TouchPositionPad } from "./components/TouchPositionPad";
 import { CollapsibleSection } from "./components/CollapsibleSection";
 import { useUiVisibility } from "./hooks/useUiVisibility";
@@ -191,7 +191,9 @@ function App() {
   );
   const [gyroMode, setGyroMode] = useState(false);
   const [calibrated, setCalibrated] = useState(false);
+  const [padRotation, setPadRotation] = useState(0);
   const rotationRef = useRef(0);
+  rotationRef.current = padRotation;
   const colorRef = useRef(color);
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
@@ -277,8 +279,17 @@ function App() {
   };
 
   const onRotate = () => {
-    rotationRef.current += rotationIncrementRad;
+    setPadRotation((r) => normalizeRadians(r + rotationIncrementRad));
     sendRotateEvent(rotationIncrementRad);
+  };
+
+  const onPadRotationPreview = (rotation: number) => {
+    rotationRef.current = rotation;
+  };
+
+  const onPadRotationCommit = (rotation: number, delta: number) => {
+    setPadRotation(normalizeRadians(rotation));
+    if (delta !== 0) sendRotateEvent(delta);
   };
 
   return (
@@ -413,8 +424,11 @@ function App() {
           >
             <TouchPositionPad
               color={color}
+              padRotation={padRotation}
               shipPosition={shipPositionFromServer}
               onPosition={({ r, theta }) => sendTouchPositionEvent(r, theta)}
+              onRotationPreview={onPadRotationPreview}
+              onRotationCommit={onPadRotationCommit}
             />
           </CollapsibleSection>
           <CollapsibleSection

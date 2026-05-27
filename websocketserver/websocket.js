@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 
-const DEBUG = false;
+const DEBUG = true;
 
 const PORT = Number(process.env.WEBSOCKET_PORT || 9431);
 const HOST = "0.0.0.0";
@@ -137,7 +137,7 @@ if (DEBUG) {
         ws.send(message);
       }
     }
-  }, 5000);
+  }, 30_000);
 }
 
 console.log(`WebSocket server listening on ws://${HOST}:${PORT}`);
