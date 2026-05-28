@@ -257,7 +257,7 @@ body.joysticks-hidden footer {
 
 .touch-position-pad {
   /* Center marker diameter as a fraction of the pad (0.2 = one-fifth). */
-  --touch-pad-center-marker-scale: 0.2;
+  --touch-pad-center-marker-scale: 0.14;
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -309,43 +309,79 @@ body.joysticks-hidden footer {
   5% {
     transform: translate(-50%, -50%)
       translate(
-        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   9% {
     transform: translate(-50%, -50%)
       translate(
-        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   13% {
     transform: translate(-50%, -50%)
       translate(
-        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   17% {
     transform: translate(-50%, -50%)
       translate(
-        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   21% {
     transform: translate(-50%, -50%)
       translate(
-        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   25% {
     transform: translate(-50%, -50%)
       translate(
-        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
 
@@ -353,36 +389,66 @@ body.joysticks-hidden footer {
   43% {
     transform: translate(-50%, -50%)
       translate(
-        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   47% {
     transform: translate(-50%, -50%)
       translate(
-        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   51% {
     transform: translate(-50%, -50%)
       translate(
-        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   55% {
     transform: translate(-50%, -50%)
       translate(
-        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
   59% {
     transform: translate(-50%, -50%)
       translate(
-        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
-        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+        calc(
+          var(--handle-wiggle-distance) *
+            sin(var(--handle-tangent-angle, -90deg))
+        ),
+        calc(
+          -1 * var(--handle-wiggle-distance) *
+            cos(var(--handle-tangent-angle, -90deg))
+        )
       );
   }
 }
@@ -630,4 +696,3 @@ body.joysticks-hidden footer {
     gap: 0.25rem;
   }
 }
-
