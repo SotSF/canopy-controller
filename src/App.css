@@ -256,6 +256,8 @@ body.joysticks-hidden footer {
 }
 
 .touch-position-pad {
+  /* Center marker diameter as a fraction of the pad (0.2 = one-fifth). */
+  --touch-pad-center-marker-scale: 0.2;
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -264,6 +266,20 @@ body.joysticks-hidden footer {
   position: relative;
   cursor: crosshair;
   box-sizing: border-box;
+}
+
+.touch-position-pad-center-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--touch-pad-center-marker-scale) * 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid;
+  background: transparent;
+  box-shadow: none;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .touch-position-pad-rotate-handle {

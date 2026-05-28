@@ -243,6 +243,11 @@ export const TouchPositionPad = ({
             onPointerCancel={onPadPointerEnd}
             aria-label="Touch position control"
           >
+            <div
+              className="touch-position-pad-center-marker"
+              style={{ borderColor: color }}
+              aria-hidden
+            />
             {shipPercent && (
               <div
                 className="touch-position-pad-ship"
