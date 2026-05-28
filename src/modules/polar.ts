@@ -23,6 +23,13 @@ export const isInsideCircle = (
   radius: number,
 ) => Math.hypot(clientX - centerX, clientY - centerY) <= radius;
 
+export const clientPointToAngle = (
+  clientX: number,
+  clientY: number,
+  centerX: number,
+  centerY: number,
+) => Math.atan2(clientY - centerY, clientX - centerX);
+
 export const polarToPadPercent = ({ r, theta }: Polar) => ({
   x: 50 + r * 50 * Math.cos(theta),
   y: 50 + r * 50 * Math.sin(theta),

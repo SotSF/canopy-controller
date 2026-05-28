@@ -187,7 +187,7 @@ body.joysticks-hidden footer {
 }
 
 .touch-position-pad-stack {
-  --touch-pad-ui-offset: 10rem;
+  --touch-pad-ui-offset: 9rem;
   --touch-pad-size: min(
     calc(100vw - 1rem),
     calc(100dvh - var(--touch-pad-ui-offset))
@@ -205,8 +205,8 @@ body.joysticks-hidden footer {
   height: var(--touch-pad-size);
   position: relative;
   flex-shrink: 0;
-  overflow: hidden;
-  contain: layout paint;
+  overflow: visible;
+  contain: layout style;
 }
 
 .touch-position-pad-rotator {
@@ -216,6 +216,43 @@ body.joysticks-hidden footer {
   will-change: transform;
   overflow: hidden;
   border-radius: 50%;
+}
+
+.touch-position-pad-toolbar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 0.65em;
+}
+
+.touch-position-pad-calibrate-help {
+  margin: 0 0 0.75em;
+  padding: 0 0.75rem;
+  max-width: min(100%, 22rem);
+  color: silver;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.touch-position-pad-toolbar-button {
+  padding: 0.5em 1.25em;
+  border-radius: 1em;
+  background-color: grey;
+  box-shadow: 0 0 12px 0 gray;
+  border: none;
+  color: #e5e5e5;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.touch-position-pad-toolbar-button--done {
+  color: #4ade80;
+}
+
+.touch-position-pad-stage--calibrating .touch-position-pad {
+  cursor: default;
 }
 
 .touch-position-pad {
@@ -229,25 +266,128 @@ body.joysticks-hidden footer {
   box-sizing: border-box;
 }
 
-.touch-position-pad-rotation-label {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  width: var(--touch-pad-size);
-  margin-top: 0.75em;
-  gap: 0.35em;
-  color: silver;
-  font-size: 0.65rem;
+.touch-position-pad-rotate-handle {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  touch-action: none;
+  z-index: 2;
 }
 
-.touch-position-pad-rotation-label-text {
-  text-align: center;
+.touch-position-pad-rotate-handle--wiggle {
+  --handle-wiggle-distance: 8px;
+  animation: touch-pad-handle-wiggle 4.5s ease-in-out infinite;
 }
 
-.touch-position-pad-rotation-slider {
-  width: 100%;
-  accent-color: #a3a3a3;
-  cursor: pointer;
+@keyframes touch-pad-handle-wiggle {
+  0%,
+  28%,
+  62%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+
+  /* first burst */
+  5% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  9% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  13% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  17% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  21% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  25% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+
+  /* second burst */
+  43% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  47% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  51% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  55% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(-1 * var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+  59% {
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--handle-wiggle-distance) * sin(var(--handle-tangent-angle, -90deg))),
+        calc(-1 * var(--handle-wiggle-distance) * cos(var(--handle-tangent-angle, -90deg)))
+      );
+  }
+}
+
+.touch-position-pad-rotate-handle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #e5e5e5;
+  border: 2px solid #a3a3a3;
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.35);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.touch-position-pad-rotate-handle:active {
+  cursor: grabbing;
 }
 
 .touch-position-pad-indicator {
@@ -448,7 +588,12 @@ body.joysticks-hidden footer {
   }
 
   .touch-position-pad-stack {
-    --touch-pad-ui-offset: 5.5rem;
+    --touch-pad-ui-offset: 6.5rem;
+  }
+
+  .touch-position-pad-calibrate-help {
+    font-size: 0.7rem;
+    margin-bottom: 0.5em;
   }
 
   .button {

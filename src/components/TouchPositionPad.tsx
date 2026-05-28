@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash";
 import {
+  clientPointToAngle,
   clientPointToPolar,
   isInsideCircle,
-  normalizeRadians,
   polarToPadPercent,
   Polar,
 } from "../modules/polar";
@@ -17,10 +17,10 @@ type TouchPositionPadProps = {
   onRotationCommit: (rotation: number, delta: number) => void;
 };
 
-const ROTATION_SLIDER_MIN = -Math.PI;
-const ROTATION_SLIDER_MAX = Math.PI;
-const ROTATION_SLIDER_STEP = 0.01;
 const ROTATION_COMMIT_MS = 150;
+/** Handle sits near the top of the pad, inset so it is not clipped by the viewport. */
+const HANDLE_LOCAL_THETA = -Math.PI / 2;
+const HANDLE_RADIUS = 0.88;
 
 const getCircleGeometry = (element: HTMLDivElement) => {
   const rect = element.getBoundingClientRect();
@@ -47,10 +47,16 @@ export const TouchPositionPad = ({
 }: TouchPositionPadProps) => {
   const padRef = useRef<HTMLDivElement>(null);
   const rotatorRef = useRef<HTMLDivElement>(null);
-  const sliderRef = useRef<HTMLInputElement>(null);
   const rotationRef = useRef(padRotation);
   const committedRotationRef = useRef(padRotation);
-  const activePointerId = useRef<number | null>(null);
+  const positionPointerId = useRef<number | null>(null);
+  const rotatePointerId = useRef<number | null>(null);
+  const rotateDragStart = useRef<{ pointerAngle: number; padRotation: number } | null>(
+    null,
+  );
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [hasHandleInteraction, setHasHandleInteraction] = useState(false);
+  const [calibratingRotation, setCalibratingRotation] = useState(padRotation);
   const [indicator, setIndicator] = useState<{ x: number; y: number } | null>(
     null,
   );
@@ -70,12 +76,8 @@ export const TouchPositionPad = ({
   useEffect(() => {
     rotationRef.current = padRotation;
     committedRotationRef.current = padRotation;
+    setCalibratingRotation(padRotation);
     applyPadRotation(rotatorRef.current, padRotation);
-    if (sliderRef.current) {
-      const slider = sliderRef.current;
-      slider.value = String(normalizeRadians(padRotation));
-      slider.setCustomValidity("");
-    }
   }, [padRotation]);
 
   const updatePosition = (clientX: number, clientY: number) => {
@@ -98,7 +100,9 @@ export const TouchPositionPad = ({
     setIndicator(polarToPadPercent(position));
   };
 
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const onPadPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (isCalibrating) return;
+
     const pad = padRef.current;
     if (!pad) return;
 
@@ -109,38 +113,122 @@ export const TouchPositionPad = ({
       return;
     }
 
-    activePointerId.current = event.pointerId;
+    positionPointerId.current = event.pointerId;
     pad.setPointerCapture(event.pointerId);
     updatePosition(event.clientX, event.clientY);
   };
 
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (activePointerId.current !== event.pointerId) return;
+  const onPadPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (positionPointerId.current !== event.pointerId) return;
     updatePosition(event.clientX, event.clientY);
   };
 
-  const onPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (activePointerId.current !== event.pointerId) return;
+  const onPadPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (positionPointerId.current !== event.pointerId) return;
 
-    activePointerId.current = null;
+    positionPointerId.current = null;
     padRef.current?.releasePointerCapture(event.pointerId);
     setIndicator(null);
   };
 
-  const onSliderInput = (event: React.FormEvent<HTMLInputElement>) => {
-    const rotation = normalizeRadians(Number(event.currentTarget.value));
-    event.currentTarget.setCustomValidity("");
+  const onRotateHandleDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    setHasHandleInteraction(true);
+    const pad = padRef.current;
+    if (!pad) return;
+
+    const { centerX, centerY } = getCircleGeometry(pad);
+    rotatePointerId.current = event.pointerId;
+    rotateDragStart.current = {
+      pointerAngle: clientPointToAngle(
+        event.clientX,
+        event.clientY,
+        centerX,
+        centerY,
+      ),
+      padRotation: rotationRef.current,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const onRotateHandleMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (rotatePointerId.current !== event.pointerId) return;
+
+    const pad = padRef.current;
+    const start = rotateDragStart.current;
+    if (!pad || !start) return;
+
+    const { centerX, centerY } = getCircleGeometry(pad);
+    const pointerAngle = clientPointToAngle(
+      event.clientX,
+      event.clientY,
+      centerX,
+      centerY,
+    );
+    const rotation = start.padRotation + (pointerAngle - start.pointerAngle);
     rotationRef.current = rotation;
+    setCalibratingRotation(rotation);
     applyPadRotation(rotatorRef.current, rotation);
     onRotationPreview(rotation);
     commitRotation(rotation);
   };
 
+  const onRotateHandleEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (rotatePointerId.current !== event.pointerId) return;
+
+    rotatePointerId.current = null;
+    rotateDragStart.current = null;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    commitRotation.flush();
+  };
+
+  const onDoneCalibrating = () => {
+    commitRotation.flush();
+    setHasHandleInteraction(false);
+    setIsCalibrating(false);
+  };
+
   const shipPercent = shipPosition ? polarToPadPercent(shipPosition) : null;
+  const handleAngleRad = calibratingRotation + HANDLE_LOCAL_THETA;
+  const handlePosition = polarToPadPercent({
+    r: HANDLE_RADIUS,
+    theta: handleAngleRad,
+  });
 
   return (
     <div className="touch-position-pad-stack">
-      <div className="touch-position-pad-stage">
+      <div className="touch-position-pad-toolbar">
+        {isCalibrating ? (
+          <button
+            type="button"
+            className="touch-position-pad-toolbar-button touch-position-pad-toolbar-button--done"
+            onClick={onDoneCalibrating}
+          >
+            Done
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="touch-position-pad-toolbar-button"
+            onClick={() => {
+              setCalibratingRotation(rotationRef.current);
+              setHasHandleInteraction(false);
+              setIsCalibrating(true);
+            }}
+          >
+            Calibrate
+          </button>
+        )}
+      </div>
+      {isCalibrating && (
+        <p className="touch-position-pad-calibrate-help">
+          Click and drag the white circle until what you see here lines up with
+          what you see on the canopy
+        </p>
+      )}
+      <div
+        className={`touch-position-pad-stage${isCalibrating ? " touch-position-pad-stage--calibrating" : ""}`}
+      >
         <div ref={rotatorRef} className="touch-position-pad-rotator">
           <div
             ref={padRef}
@@ -149,10 +237,10 @@ export const TouchPositionPad = ({
               borderColor: color,
               boxShadow: `0 0 16px 0 ${color}`,
             }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerEnd}
-            onPointerCancel={onPointerEnd}
+            onPointerDown={onPadPointerDown}
+            onPointerMove={onPadPointerMove}
+            onPointerUp={onPadPointerEnd}
+            onPointerCancel={onPadPointerEnd}
             aria-label="Touch position control"
           >
             {shipPercent && (
@@ -179,22 +267,22 @@ export const TouchPositionPad = ({
             )}
           </div>
         </div>
+        {isCalibrating && (
+          <div
+            className={`touch-position-pad-rotate-handle${hasHandleInteraction ? "" : " touch-position-pad-rotate-handle--wiggle"}`}
+            style={{
+              left: `${handlePosition.x}%`,
+              top: `${handlePosition.y}%`,
+              ["--handle-tangent-angle" as string]: `${handleAngleRad}rad`,
+            }}
+            onPointerDown={onRotateHandleDown}
+            onPointerMove={onRotateHandleMove}
+            onPointerUp={onRotateHandleEnd}
+            onPointerCancel={onRotateHandleEnd}
+            aria-label="Drag to rotate touch pad"
+          />
+        )}
       </div>
-      <label className="touch-position-pad-rotation-label">
-        <span className="touch-position-pad-rotation-label-text">Rotate</span>
-        <input
-          ref={sliderRef}
-          type="range"
-          className="touch-position-pad-rotation-slider"
-          min={ROTATION_SLIDER_MIN}
-          max={ROTATION_SLIDER_MAX}
-          step={ROTATION_SLIDER_STEP}
-          defaultValue={normalizeRadians(padRotation)}
-          onInput={onSliderInput}
-          onInvalid={(event) => event.preventDefault()}
-          aria-label="Rotate touch pad"
-        />
-      </label>
     </div>
   );
 };
