@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactSwitch from "react-switch";
 import {
   Button,
@@ -25,7 +25,7 @@ import "./App.css";
 
 type HSVA = { h: number; s: number; v: number; a: number };
 
-const numberOfColors = 8;
+const numberOfColors = 9;
 const colorScale = chroma
   .scale([
     "#ff0000",
@@ -35,6 +35,7 @@ const colorScale = chroma
     "#0000ff",
     "#4b0082",
     "#ee82ee",
+    "#00ffff",
   ])
   .mode("hcl")
   .colors(numberOfColors);
@@ -47,7 +48,6 @@ const initialCustomColor = chroma
   .hex();
 
 const eventThrottleMs = 50;
-const rotationIncrementRad = Math.PI / 6; // 30 degrees
 
 const sendChangeColorEvent = throttle(
   (color: string) =>
@@ -115,6 +115,25 @@ const WifiIcon = ({ connected }: { connected: boolean }) => (
   </svg>
 );
 
+const FullscreenIcon = ({ active }: { active: boolean }) => (
+  <svg
+    className="status-icon"
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    aria-label={active ? "Exit fullscreen" : "Enter fullscreen"}
+  >
+    <path
+      fill="currentColor"
+      d={
+        active
+          ? "M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
+          : "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"
+      }
+    />
+  </svg>
+);
+
 const useConnectionStatus = () => {
   const [status, setStatus] = useState<ConnectionStatus>("disconnected");
   useEffect(() => subscribeConnectionStatus(setStatus), []);
@@ -125,6 +144,31 @@ const useShipPosition = () => {
   const [position, setPosition] = useState<Polar | null>(null);
   useEffect(() => subscribeShipPosition(setPosition), []);
   return position;
+};
+
+const useFullscreen = () => {
+  const [isFullscreen, setIsFullscreen] = useState(
+    () => document.fullscreenElement !== null,
+  );
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(document.fullscreenElement !== null);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggle = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  }, []);
+
+  const supported =
+    typeof document.documentElement.requestFullscreen === "function";
+
+  return { isFullscreen, toggle, supported };
 };
 
 function App() {
@@ -143,6 +187,8 @@ function App() {
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
   const shipPositionFromServer = useShipPosition();
+  const { isFullscreen, toggle: toggleFullscreen, supported: fullscreenSupported } =
+    useFullscreen();
   const { scheme, selectScheme } = useControlScheme();
 
   const { requestAccess, revokeAccess } = useDeviceOrientation();
@@ -216,11 +262,6 @@ function App() {
     onColorChange(newColor.hex);
   };
 
-  const onRotate = () => {
-    setPadRotation((r) => normalizeRadians(r + rotationIncrementRad));
-    sendRotateEvent(rotationIncrementRad);
-  };
-
   const onPadRotationPreview = (rotation: number) => {
     rotationRef.current = rotation;
   };
@@ -233,8 +274,24 @@ function App() {
   const controlSchemes = Object.keys(controlSchemeLabels) as ControlScheme[];
 
   return (
-    <div className="App">
+    <div
+      className={[
+        "App",
+        calibrated && !isFullscreen && "App--status-bar-visible",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="status-bar">
+        {fullscreenSupported && (
+          <button
+            type="button"
+            className="status-button"
+            onClick={toggleFullscreen}
+          >
+            <FullscreenIcon active={isFullscreen} />
+          </button>
+        )}
         {connectionStatus === "connected" ? (
           <WifiIcon connected />
         ) : (
@@ -251,6 +308,9 @@ function App() {
 
       {!calibrated ? (
         <div className="control-panel control-panel--initial">
+          <p className="landing-color-label">
+            To start playing, choose your color!
+          </p>
           <ColorPickerPanel
             hsva={hsva}
             colorScale={colorScale}
@@ -263,22 +323,10 @@ function App() {
           <div className="calibration-container">
             <button
               type="button"
-              className="calibration-button"
-              onTouchStart={onRotate}
-              onClick={() =>
-                !("ontouchstart" in document.documentElement) && onRotate()
-              }
-              aria-label="Rotate starting position"
-            >
-              🔄️
-            </button>
-            <button
-              type="button"
-              className="calibration-button calibration-done"
+              className="calibration-ready-button"
               onClick={() => setCalibrated(true)}
-              aria-label="Done calibrating"
             >
-              ✓
+              I'm ready
             </button>
           </div>
         </div>
