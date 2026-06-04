@@ -17,7 +17,7 @@ type TouchPositionPadProps = {
   onRotationCommit: (rotation: number, delta: number) => void;
 };
 
-const ROTATION_COMMIT_MS = 150;
+const ROTATION_COMMIT_MS = 15;
 /** Handle sits near the top of the pad, inset so it is not clipped by the viewport. */
 const HANDLE_LOCAL_THETA = -Math.PI / 2;
 const HANDLE_RADIUS = 0.88;
@@ -51,9 +51,10 @@ export const TouchPositionPad = ({
   const committedRotationRef = useRef(padRotation);
   const positionPointerId = useRef<number | null>(null);
   const rotatePointerId = useRef<number | null>(null);
-  const rotateDragStart = useRef<{ pointerAngle: number; padRotation: number } | null>(
-    null,
-  );
+  const rotateDragStart = useRef<{
+    pointerAngle: number;
+    padRotation: number;
+  } | null>(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [hasHandleInteraction, setHasHandleInteraction] = useState(false);
   const [calibratingRotation, setCalibratingRotation] = useState(padRotation);

@@ -14,10 +14,7 @@ import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
 import { normalizeRadians, Polar } from "./modules/polar";
 import { ColorPickerPanel } from "./components/ColorPickerPanel";
 import { TouchPositionPad } from "./components/TouchPositionPad";
-import {
-  controlSchemeLabels,
-  ControlScheme,
-} from "./modules/controlScheme";
+import { controlSchemeLabels, ControlScheme } from "./modules/controlScheme";
 import { useControlScheme } from "./hooks/useControlScheme";
 import { useDeviceOrientation } from "./modules/deviceOrientation";
 import { throttle } from "lodash";
@@ -47,7 +44,7 @@ const initialCustomColor = chroma
   .hsv(initialHsva.h, initialHsva.s / 100, initialHsva.v / 100)
   .hex();
 
-const eventThrottleMs = 50;
+const eventThrottleMs = 15;
 
 const sendChangeColorEvent = throttle(
   (color: string) =>
@@ -187,8 +184,11 @@ function App() {
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
   const shipPositionFromServer = useShipPosition();
-  const { isFullscreen, toggle: toggleFullscreen, supported: fullscreenSupported } =
-    useFullscreen();
+  const {
+    isFullscreen,
+    toggle: toggleFullscreen,
+    supported: fullscreenSupported,
+  } = useFullscreen();
   const { scheme, selectScheme } = useControlScheme();
 
   const { requestAccess, revokeAccess } = useDeviceOrientation();
