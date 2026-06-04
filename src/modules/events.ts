@@ -7,6 +7,7 @@ export const enum EventType {
   CalibrationStatus,
   ShipPosition,
   TouchPosition,
+  GameDataUpdate,
 }
 
 export const enum Button {
@@ -50,10 +51,23 @@ export type PlayerEvent =
       theta: number;
     };
 
-export type ServerEvent = {
-  event: EventType.ShipPosition;
-  r: number;
-  theta: number;
+export type ServerEvent =
+  | {
+      event: EventType.ShipPosition;
+      r: number;
+      theta: number;
+    }
+  | {
+      event: EventType.GameDataUpdate;
+      displayMessageId: number;
+      gameId: number;
+      info: Uint8Array;
+    };
+
+export type GameData = {
+  displayMessageId: number;
+  gameId: number;
+  info: Uint8Array;
 };
 
 const hexStringToIntArray = (hexString: string) =>
@@ -70,6 +84,7 @@ export type ConnectionStatus = "connected" | "disconnected";
 
 const statusListeners = new Set<(status: ConnectionStatus) => void>();
 const shipPositionListeners = new Set<(position: { r: number; theta: number }) => void>();
+const gameDataListeners = new Set<(gameData: GameData) => void>();
 let currentStatus: ConnectionStatus = "disconnected";
 let websocket: WebSocket;
 let retryCount = 0;
@@ -116,14 +131,29 @@ const connect = () => {
     if (!(event.data instanceof ArrayBuffer)) return;
 
     const view = new DataView(event.data);
-    if (event.data.byteLength < 9) return;
-    if (view.getUint8(0) !== EventType.ShipPosition) return;
+    if (event.data.byteLength < 1) return;
 
-    const position = {
-      r: view.getFloat32(1, true),
-      theta: view.getFloat32(5, true),
-    };
-    shipPositionListeners.forEach((listener) => listener(position));
+    switch (view.getUint8(0)) {
+      case EventType.ShipPosition: {
+        if (event.data.byteLength < 9) return;
+        const position = {
+          r: view.getFloat32(1, true),
+          theta: view.getFloat32(5, true),
+        };
+        shipPositionListeners.forEach((listener) => listener(position));
+        break;
+      }
+      case EventType.GameDataUpdate: {
+        if (event.data.byteLength < 17) return;
+        const gameData: GameData = {
+          displayMessageId: view.getUint16(1, true),
+          gameId: view.getUint16(3, true),
+          info: new Uint8Array(event.data.slice(5, 17)),
+        };
+        gameDataListeners.forEach((listener) => listener(gameData));
+        break;
+      }
+    }
   });
 };
 
@@ -158,6 +188,13 @@ export const subscribeShipPosition = (
   shipPositionListeners.add(listener);
   return () => {
     shipPositionListeners.delete(listener);
+  };
+};
+
+export const subscribeGameData = (listener: (gameData: GameData) => void) => {
+  gameDataListeners.add(listener);
+  return () => {
+    gameDataListeners.delete(listener);
   };
 };
 
@@ -202,6 +239,12 @@ export const subscribeShipPosition = (
     0x00                < Event type
     0x00 0x00 0x00 0x00 < float data 0 (r)
     0x00 0x00 0x00 0x00 < float data 1 (theta, radians)
+
+  EventType.GameDataUpdate (server -> client):
+    0x00                < Event type
+    0x00 0x00            < uint16 DisplayMessageId (little-endian)
+    0x00 0x00            < uint16 GameID (little-endian)
+    0x00 x12             < 12 bytes unstructured game info (health, ammo, shields, snake length, etc)
 */
 export const sendEvent = async (playerEvent: PlayerEvent) => {
   const byteBuffer = new Uint8Array(17);

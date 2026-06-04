@@ -4,9 +4,11 @@ import {
   Button,
   ConnectionStatus,
   EventType,
+  GameData,
   reconnect,
   sendEvent,
   subscribeConnectionStatus,
+  subscribeGameData,
   subscribeShipPosition,
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
@@ -66,12 +68,6 @@ const sendRotateEvent = (angle: number) =>
   sendEvent({
     event: EventType.Rotate,
     angle,
-  });
-
-const sendCalibrationStatusEvent = (calibrated: boolean) =>
-  sendEvent({
-    event: EventType.CalibrationStatus,
-    calibrated,
   });
 
 const sendTouchPositionEvent = throttle(
@@ -141,6 +137,12 @@ const useShipPosition = () => {
   return position;
 };
 
+const useGameData = () => {
+  const [gameData, setGameData] = useState<GameData | null>(null);
+  useEffect(() => subscribeGameData(setGameData), []);
+  return gameData;
+};
+
 const useFullscreen = () => {
   const [isFullscreen, setIsFullscreen] = useState(
     () => document.fullscreenElement !== null,
@@ -181,6 +183,7 @@ function App() {
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
   const shipPositionFromServer = useShipPosition();
+  const gameData = useGameData();
   const {
     isFullscreen,
     toggle: toggleFullscreen,
@@ -223,11 +226,6 @@ function App() {
       drawJoys(colorRef.current);
     }
   }, [calibrated, scheme]);
-
-  useEffect(() => {
-    if (connectionStatus !== "connected") return;
-    sendCalibrationStatusEvent(calibrated);
-  }, [connectionStatus, calibrated]);
 
   useEffect(() => {
     if (connectionStatus !== "connected") return;
@@ -300,6 +298,13 @@ function App() {
           </button>
         )}
       </div>
+
+      {gameData && (
+        <div className="game-data-readout" aria-live="polite">
+          received displaymessageid {gameData.displayMessageId}, gameid{" "}
+          {gameData.gameId}
+        </div>
+      )}
 
       {!calibrated ? (
         <div className="control-panel control-panel--initial">

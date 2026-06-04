@@ -14,6 +14,7 @@ const EventType = {
   CalibrationStatus: 6,
   ShipPosition: 7,
   TouchPosition: 8,
+  GameDataUpdate: 9,
 };
 
 const eventTypeNames = Object.fromEntries(
@@ -88,6 +89,15 @@ const formatEvent = (buffer) => {
         };
       }
       break;
+    case EventType.GameDataUpdate:
+      if (buffer.length >= 17) {
+        payload = {
+          displayMessageId: view.getUint16(1, true),
+          gameId: view.getUint16(3, true),
+          info: buffer.slice(5, 17).toString("hex"),
+        };
+      }
+      break;
   }
 
   const hex = buffer.toString("hex");
@@ -102,6 +112,15 @@ const encodeShipPosition = (r, theta) => {
   buffer[0] = EventType.ShipPosition;
   buffer.writeFloatLE(r, 1);
   buffer.writeFloatLE(theta, 5);
+  return buffer;
+};
+
+const encodeGameDataUpdate = (displayMessageId, gameId, info = Buffer.alloc(12)) => {
+  const buffer = Buffer.alloc(17);
+  buffer[0] = EventType.GameDataUpdate;
+  buffer.writeUInt16LE(displayMessageId & 0xffff, 1);
+  buffer.writeUInt16LE(gameId & 0xffff, 3);
+  info.copy(buffer, 5, 0, 12);
   return buffer;
 };
 
@@ -126,21 +145,46 @@ wss.on("connection", (ws) => {
   });
 });
 
+const broadcast = (message) => {
+  console.log("< Sent", formatEvent(message));
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(message);
+    }
+  }
+};
+
+const GAME_DATA_MIN_DELAY_MS = 3_000;
+const GAME_DATA_MAX_DELAY_MS = 8_000;
+
+const scheduleGameDataUpdate = () => {
+  const delay =
+    GAME_DATA_MIN_DELAY_MS +
+    Math.random() * (GAME_DATA_MAX_DELAY_MS - GAME_DATA_MIN_DELAY_MS);
+  setTimeout(() => {
+    if (clients.size > 0) {
+      const displayMessageId = Math.floor(Math.random() * 10);
+      const gameId = Math.floor(Math.random() * 10);
+      broadcast(encodeGameDataUpdate(displayMessageId, gameId));
+    }
+    scheduleGameDataUpdate();
+  }, delay);
+};
+
+scheduleGameDataUpdate();
+
 if (DEBUG) {
   setInterval(() => {
     const r = Math.random();
     const theta = Math.random() * Math.PI * 2 - Math.PI;
-    const message = encodeShipPosition(r, theta);
-    console.log("< Sent", formatEvent(message));
-    for (const ws of clients) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(message);
-      }
-    }
+    broadcast(encodeShipPosition(r, theta));
   }, 30_000);
 }
 
 console.log(`WebSocket server listening on ws://${HOST}:${PORT}`);
+console.log(
+  `Sending GameDataUpdate every ${GAME_DATA_MIN_DELAY_MS / 1000}-${GAME_DATA_MAX_DELAY_MS / 1000}s`,
+);
 if (DEBUG) {
-  console.log("Debug mode: sending ShipPosition every 5s");
+  console.log("Debug mode: sending ShipPosition every 30s");
 }
