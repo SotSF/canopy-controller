@@ -1,6 +1,5 @@
 import chroma from "chroma-js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import ReactSwitch from "react-switch";
 import {
   Button,
   ConnectionStatus,
@@ -16,7 +15,6 @@ import { ColorPickerPanel } from "./components/ColorPickerPanel";
 import { TouchPositionPad } from "./components/TouchPositionPad";
 import { controlSchemeLabels, ControlScheme } from "./modules/controlScheme";
 import { useControlScheme } from "./hooks/useControlScheme";
-import { useDeviceOrientation } from "./modules/deviceOrientation";
 import { throttle } from "lodash";
 import "./App.css";
 
@@ -175,7 +173,6 @@ function App() {
   const [selection, setSelection] = useState<number | "custom">(
     defaultColorIndex,
   );
-  const [gyroMode, setGyroMode] = useState(false);
   const [calibrated, setCalibrated] = useState(false);
   const [padRotation, setPadRotation] = useState(0);
   const rotationRef = useRef(0);
@@ -190,8 +187,6 @@ function App() {
     supported: fullscreenSupported,
   } = useFullscreen();
   const { scheme, selectScheme } = useControlScheme();
-
-  const { requestAccess, revokeAccess } = useDeviceOrientation();
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -380,18 +375,6 @@ function App() {
 
           {scheme === "joysticks" && (
             <div className="control-panel control-panel--joysticks">
-              <label className="gyro-toggle-container">
-                <ReactSwitch
-                  onChange={(sensorModeEnabled) => {
-                    setGyroMode(sensorModeEnabled);
-                    if (sensorModeEnabled) requestAccess();
-                    else revokeAccess();
-                  }}
-                  checked={gyroMode}
-                  className="gyro-toggle"
-                />
-                <span>Gyro mode</span>
-              </label>
               <div className="button-wrapper">
                 <div className="button-container">
                   <button

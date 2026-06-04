@@ -69,17 +69,6 @@
   opacity: 0.4;
 }
 
-.gyro-toggle-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1em;
-  color: silver;
-}
-
-.gyro-toggle {
-  margin-right: 1em;
-}
-
 .w-color-wheel {
   box-shadow: 0 0 16px -5px gray;
   border-radius: 50%;
@@ -124,20 +113,25 @@
   max-width: 800px;
   flex-grow: 1;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 1.25em;
+  width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
 }
 
 .button {
   display: flex;
-  width: 100px;
-  height: 3em;
-  margin-left: 50px;
-  margin-right: 50px;
+  flex: 1;
+  max-width: 9.5em;
+  min-width: 5.5em;
+  height: 4.5em;
   border-radius: 1em;
   background-color: grey;
   box-shadow: 0 0 16px 0 gray;
   justify-content: center;
   align-items: center;
+  font-size: 1.15em;
   font-weight: bold;
 }
 
@@ -151,9 +145,9 @@
 }
 
 .joystick {
-  margin-top: 1em;
-  width: 200px;
-  height: 200px;
+  margin-top: 0.5em;
+  width: min(12.5rem, 30dvh);
+  height: min(12.5rem, 30dvh);
   border-radius: 50%;
 }
 
@@ -484,7 +478,7 @@ body.joysticks-hidden footer {
 }
 
 .App--status-bar-visible .control-scheme-tabs {
-  margin-top: 2.25rem;
+  margin-top: 0;
   padding-right: 4.75rem;
 }
 
@@ -492,14 +486,14 @@ body.joysticks-hidden footer {
   display: flex;
   width: 100%;
   max-width: min(100%, 800px);
-  margin: 0.5em 0 0.75em;
+  margin: 0 0 0.75em;
   border-bottom: 1px solid #404040;
   box-sizing: border-box;
 }
 
 @media (orientation: landscape) {
   .App--status-bar-visible .control-scheme-tabs {
-    margin-top: 3.5rem;
+    margin-top: 0;
     padding-right: 3rem;
   }
 }
@@ -610,10 +604,16 @@ body.joysticks-hidden footer {
 
 .control-panel--joysticks {
   margin-top: 0.5em;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  justify-content: flex-end;
+  padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
 }
 
 .control-panel--joysticks .button-wrapper {
-  margin-top: 0.5em;
+  margin-top: 0;
+  flex-shrink: 0;
 }
 
 @media (orientation: landscape) and (max-height: 600px) {
@@ -623,11 +623,11 @@ body.joysticks-hidden footer {
   }
 
   .control-scheme-tabs {
-    margin: 0.25em 0 0.35em;
+    margin: 0 0 0.35em;
   }
 
   .App--status-bar-visible .control-scheme-tabs {
-    margin-top: 3.5rem;
+    margin-top: 0;
     padding-right: 3rem;
   }
 
@@ -678,16 +678,36 @@ body.joysticks-hidden footer {
     margin-bottom: 0.5em;
   }
 
+  .control-panel--joysticks {
+    justify-content: stretch;
+  }
+
+  .control-panel--joysticks .button-wrapper {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+    padding: 0.4rem 0 0.5rem;
+  }
+
+  .button-container {
+    justify-content: space-between;
+    gap: 0.25rem;
+    padding: 0 0.25rem;
+    align-items: stretch;
+  }
+
   .button {
-    width: 4.5em;
-    height: 2.5em;
-    margin-left: 0.75em;
-    margin-right: 0.75em;
+    flex: 0 0 auto;
+    width: min(7.5rem, 32dvh);
+    max-width: none;
+    min-width: 0;
+    height: auto;
+    font-size: 1.25em;
   }
 
   .joystick {
-    width: min(7.5rem, 36dvh);
-    height: min(7.5rem, 36dvh);
+    width: min(7.5rem, 32dvh);
+    height: min(7.5rem, 32dvh);
     margin-top: 0.25em;
   }
 
