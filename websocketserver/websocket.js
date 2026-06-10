@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 
-const DEBUG = false;
+const DEBUG = true;
 
 const PORT = Number(process.env.WEBSOCKET_PORT || 9431);
 const HOST = "0.0.0.0";
@@ -168,7 +168,7 @@ const scheduleGameDataUpdate = () => {
     Math.random() * (GAME_DATA_MAX_DELAY_MS - GAME_DATA_MIN_DELAY_MS);
   setTimeout(() => {
     if (clients.size > 0) {
-      const displayMessageId = Math.floor(Math.random() * 10);
+      const displayMessageId = 0;
       const gameId = Math.floor(Math.random() * 10);
       broadcast(encodeGameDataUpdate(displayMessageId, gameId));
     }

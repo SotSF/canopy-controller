@@ -14,10 +14,13 @@ import {
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
 import { normalizeRadians, Polar } from "./modules/polar";
 import { ColorPickerPanel } from "./components/ColorPickerPanel";
+import { GameModeSelector } from "./components/GameModeSelector";
+import { DisplayMessageBox } from "./components/DisplayMessageBox";
 import { TouchPositionPad } from "./components/TouchPositionPad";
 import { controlSchemeLabels, ControlScheme } from "./modules/controlScheme";
 import { getGameDataMessage } from "./modules/gameDataMessages";
 import { useControlScheme } from "./hooks/useControlScheme";
+import { useGameMode } from "./hooks/useGameMode";
 import { throttle } from "lodash";
 import "./App.css";
 
@@ -138,6 +141,25 @@ const useGameData = () => {
   return gameData;
 };
 
+const DISPLAY_MESSAGE_MS = 5000;
+
+const useTimedDisplayMessage = (gameData: GameData | null) => {
+  const [message, setMessage] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!gameData) return;
+
+    const text = getGameDataMessage(gameData.displayMessageId);
+    if (!text) return;
+
+    setMessage(text);
+    const id = setTimeout(() => setMessage(undefined), DISPLAY_MESSAGE_MS);
+    return () => clearTimeout(id);
+  }, [gameData]);
+
+  return message;
+};
+
 const useFullscreen = () => {
   const [isFullscreen, setIsFullscreen] = useState(
     () => document.fullscreenElement !== null,
@@ -184,6 +206,7 @@ function App() {
     supported: fullscreenSupported,
   } = useFullscreen();
   const { scheme, selectScheme } = useControlScheme();
+  const { gameMode, selectGameMode } = useGameMode();
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -253,9 +276,7 @@ function App() {
   };
 
   const controlSchemes = Object.keys(controlSchemeLabels) as ControlScheme[];
-  const gameDataMessage = gameData
-    ? getGameDataMessage(gameData.displayMessageId)
-    : undefined;
+  const gameDataMessage = useTimedDisplayMessage(gameData);
 
   return (
     <div
@@ -289,12 +310,6 @@ function App() {
           </button>
         )}
       </div>
-
-      {gameDataMessage && (
-        <div className="game-data-readout" aria-live="polite">
-          {gameDataMessage}
-        </div>
-      )}
 
       {!calibrated ? (
         <div className="control-panel control-panel--initial">
@@ -343,6 +358,10 @@ function App() {
 
           {scheme === "colorPicker" && (
             <div className="control-panel control-panel--color-picker">
+              <GameModeSelector
+                gameMode={gameMode}
+                onSelect={selectGameMode}
+              />
               <ColorPickerPanel
                 hsva={hsva}
                 colorScale={colorScale}
@@ -376,6 +395,7 @@ function App() {
                       Calibrate
                     </button>
                   )}
+                  <DisplayMessageBox message={gameDataMessage} />
                 </div>
                 <button
                   className="button global-position-button global-position-button--l"
@@ -417,6 +437,9 @@ function App() {
 
           {scheme === "joysticks" && (
             <div className="control-panel control-panel--joysticks">
+              <div className="joysticks-toolbar">
+                <DisplayMessageBox message={gameDataMessage} />
+              </div>
               <div className="button-wrapper">
                 <div className="button-container">
                   <button

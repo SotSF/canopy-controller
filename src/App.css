@@ -25,17 +25,22 @@
   font-size: calc(10px + 2vmin);
 }
 
-.game-data-readout {
-  position: fixed;
-  left: max(8px, env(safe-area-inset-left, 0px));
-  bottom: max(8px, env(safe-area-inset-bottom, 0px));
-  z-index: 10;
-  pointer-events: none;
-  color: silver;
-  opacity: 0.5;
-  font-size: 0.7rem;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+.display-message-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  min-height: 2rem;
+  padding: 0.35em 0.85em;
+  border-radius: 0.65em;
+  border: 1px solid #525252;
+  background: rgba(0, 0, 0, 0.35);
+  color: #e5e5e5;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .status-bar {
@@ -549,6 +554,52 @@ body.joysticks-hidden footer {
   width: 100%;
 }
 
+.game-mode-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+  width: 100%;
+  max-width: min(100%, 800px);
+  margin-bottom: 1em;
+}
+
+.game-mode-label {
+  margin: 0;
+  color: #e5e5e5;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.game-mode-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5em;
+  width: 100%;
+}
+
+.game-mode-option {
+  padding: 0.55em 1em;
+  border-radius: 1em;
+  border: 1px solid #525252;
+  background-color: #3a3f47;
+  color: #d4d4d4;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    color 150ms;
+}
+
+.game-mode-option--active {
+  border-color: #e5e5e5;
+  background-color: #525252;
+  color: #e5e5e5;
+}
+
 .color-picker-panel {
   display: flex;
   flex-direction: column;
@@ -651,7 +702,20 @@ body.joysticks-hidden footer {
   grid-area: toolbar;
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 0.65rem;
   width: 100%;
+  min-height: 2.25rem;
+}
+
+.joysticks-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: min(100%, 800px);
+  min-height: 2.25rem;
+  flex-shrink: 0;
 }
 
 .global-position-button--l {
@@ -732,6 +796,10 @@ body.joysticks-hidden footer {
   overflow: hidden;
   justify-content: flex-end;
   padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
+}
+
+.control-panel--joysticks .joysticks-toolbar {
+  margin-bottom: 0.5em;
 }
 
 .control-panel--joysticks .button-wrapper {
