@@ -24,6 +24,10 @@ const ROTATION_COMMIT_MS = 15;
 const HANDLE_LOCAL_THETA = -Math.PI / 2;
 const HANDLE_RADIUS = 0.88;
 
+/** Undo screen-space X when the stage is mirrored with scaleX(-1). */
+const mirrorClientX = (clientX: number, centerX: number) =>
+  2 * centerX - clientX;
+
 const getCircleGeometry = (element: HTMLDivElement) => {
   const rect = element.getBoundingClientRect();
   const radius = element.offsetWidth / 2;
@@ -114,7 +118,7 @@ export const TouchPositionPad = ({
 
     const { centerX, centerY, radius } = getCircleGeometry(pad);
     const screen = clientPointToPolar(
-      clientX,
+      mirrorClientX(clientX, centerX),
       clientY,
       centerX,
       centerY,
@@ -169,7 +173,7 @@ export const TouchPositionPad = ({
     rotatePointerId.current = event.pointerId;
     rotateDragStart.current = {
       pointerAngle: clientPointToAngle(
-        event.clientX,
+        mirrorClientX(event.clientX, centerX),
         event.clientY,
         centerX,
         centerY,
@@ -188,7 +192,7 @@ export const TouchPositionPad = ({
 
     const { centerX, centerY } = getCircleGeometry(pad);
     const pointerAngle = clientPointToAngle(
-      event.clientX,
+      mirrorClientX(event.clientX, centerX),
       event.clientY,
       centerX,
       centerY,

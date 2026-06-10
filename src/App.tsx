@@ -12,7 +12,7 @@ import {
   subscribeShipPosition,
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
-import { mirrorPolarX, normalizeRadians, Polar } from "./modules/polar";
+import { normalizeRadians, Polar } from "./modules/polar";
 import { ColorPickerPanel } from "./components/ColorPickerPanel";
 import { GameModeSelector } from "./components/GameModeSelector";
 import { DisplayMessageBox } from "./components/DisplayMessageBox";
@@ -409,10 +409,9 @@ function App() {
                     color={color}
                     padRotation={padRotation}
                     shipPosition={shipPositionFromServer}
-                    onPosition={(position) => {
-                      const { r, theta } = mirrorPolarX(position);
-                      sendTouchPositionEvent(r, theta);
-                    }}
+                    onPosition={({ r, theta }) =>
+                      sendTouchPositionEvent(r, theta)
+                    }
                     onRotationCommit={onPadRotationCommit}
                     showToolbar={false}
                     isCalibrating={padCalibrating}
