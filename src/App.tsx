@@ -19,6 +19,7 @@ import { DisplayMessageBox } from "./components/DisplayMessageBox";
 import { TouchPositionPad } from "./components/TouchPositionPad";
 import { controlSchemeLabels, ControlScheme } from "./modules/controlScheme";
 import { getGameDataMessage } from "./modules/gameDataMessages";
+import { loadPadRotation, savePadRotation } from "./modules/padCalibration";
 import { useControlScheme } from "./hooks/useControlScheme";
 import { useGameMode } from "./hooks/useGameMode";
 import { throttle } from "lodash";
@@ -193,7 +194,7 @@ function App() {
     defaultColorIndex,
   );
   const [calibrated, setCalibrated] = useState(false);
-  const [padRotation, setPadRotation] = useState(0);
+  const [padRotation, setPadRotation] = useState(loadPadRotation);
   const [padCalibrating, setPadCalibrating] = useState(false);
   const colorRef = useRef(color);
   colorRef.current = color;
@@ -270,9 +271,11 @@ function App() {
     onColorChange(newColor.hex);
   };
 
-  const onPadRotationCommit = (rotation: number, delta: number) => {
-    setPadRotation(normalizeRadians(rotation));
-    // Do not send rotation to server. Rotation is client-side only concern.
+  const onPadRotationCommit = (rotation: number) => {
+    const next = normalizeRadians(rotation);
+    setPadRotation(next);
+    savePadRotation(next);
+    // Rotation is client-side only; not sent to the server.
   };
 
   const controlSchemes = Object.keys(controlSchemeLabels) as ControlScheme[];
