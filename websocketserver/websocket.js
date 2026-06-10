@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 
-const DEBUG = true;
+const DEBUG = false;
 
 const PORT = Number(process.env.WEBSOCKET_PORT || 9431);
 const HOST = "0.0.0.0";
@@ -115,7 +115,11 @@ const encodeShipPosition = (r, theta) => {
   return buffer;
 };
 
-const encodeGameDataUpdate = (displayMessageId, gameId, info = Buffer.alloc(12)) => {
+const encodeGameDataUpdate = (
+  displayMessageId,
+  gameId,
+  info = Buffer.alloc(12),
+) => {
   const buffer = Buffer.alloc(17);
   buffer[0] = EventType.GameDataUpdate;
   buffer.writeUInt16LE(displayMessageId & 0xffff, 1);
@@ -171,9 +175,8 @@ const scheduleGameDataUpdate = () => {
   }, delay);
 };
 
-scheduleGameDataUpdate();
-
 if (DEBUG) {
+  scheduleGameDataUpdate();
   setInterval(() => {
     const r = Math.random();
     const theta = Math.random() * Math.PI * 2 - Math.PI;

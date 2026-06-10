@@ -177,8 +177,6 @@ function App() {
   );
   const [calibrated, setCalibrated] = useState(false);
   const [padRotation, setPadRotation] = useState(0);
-  const rotationRef = useRef(0);
-  rotationRef.current = padRotation;
   const colorRef = useRef(color);
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
@@ -201,14 +199,12 @@ function App() {
       const rx = r.GetX();
       const ry = r.GetY();
       if (![lx, ly, rx, ry].some((n) => n > 0.00001 || n < -0.00001)) return;
-      const cos = Math.cos(rotationRef.current);
-      const sin = Math.sin(rotationRef.current);
       sendEvent({
         event: EventType.Update,
-        lx: lx * cos - ly * sin,
-        ly: lx * sin + ly * cos,
-        rx: rx * cos - ry * sin,
-        ry: rx * sin + ry * cos,
+        lx,
+        ly,
+        rx,
+        ry,
       });
     }, eventThrottleMs);
     return () => clearInterval(id);
@@ -255,13 +251,9 @@ function App() {
     onColorChange(newColor.hex);
   };
 
-  const onPadRotationPreview = (rotation: number) => {
-    rotationRef.current = rotation;
-  };
-
   const onPadRotationCommit = (rotation: number, delta: number) => {
     setPadRotation(normalizeRadians(rotation));
-    // if (delta !== 0) sendRotateEvent(delta);
+    if (delta !== 0) sendRotateEvent(delta);
   };
 
   const controlSchemes = Object.keys(controlSchemeLabels) as ControlScheme[];
@@ -372,7 +364,6 @@ function App() {
                 padRotation={padRotation}
                 shipPosition={shipPositionFromServer}
                 onPosition={({ r, theta }) => sendTouchPositionEvent(r, theta)}
-                onRotationPreview={onPadRotationPreview}
                 onRotationCommit={onPadRotationCommit}
               />
             </div>

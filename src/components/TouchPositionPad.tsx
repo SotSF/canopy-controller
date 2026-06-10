@@ -13,7 +13,6 @@ type TouchPositionPadProps = {
   padRotation: number;
   shipPosition: Polar | null;
   onPosition: (position: Polar) => void;
-  onRotationPreview: (rotation: number) => void;
   onRotationCommit: (rotation: number, delta: number) => void;
 };
 
@@ -42,7 +41,6 @@ export const TouchPositionPad = ({
   padRotation,
   shipPosition,
   onPosition,
-  onRotationPreview,
   onRotationCommit,
 }: TouchPositionPadProps) => {
   const padRef = useRef<HTMLDivElement>(null);
@@ -170,7 +168,6 @@ export const TouchPositionPad = ({
     rotationRef.current = rotation;
     setCalibratingRotation(rotation);
     applyPadRotation(rotatorRef.current, rotation);
-    onRotationPreview(rotation);
     commitRotation(rotation);
   };
 
