@@ -12,7 +12,7 @@ import {
   subscribeShipPosition,
 } from "./modules/events";
 import { joyL, joyR, drawJoys, recolorJoys } from "./modules/joystick";
-import { normalizeRadians, Polar } from "./modules/polar";
+import { mirrorPolarX, normalizeRadians, Polar } from "./modules/polar";
 import { ColorPickerPanel } from "./components/ColorPickerPanel";
 import { GameModeSelector } from "./components/GameModeSelector";
 import { DisplayMessageBox } from "./components/DisplayMessageBox";
@@ -358,10 +358,7 @@ function App() {
 
           {scheme === "colorPicker" && (
             <div className="control-panel control-panel--color-picker">
-              <GameModeSelector
-                gameMode={gameMode}
-                onSelect={selectGameMode}
-              />
+              <GameModeSelector gameMode={gameMode} onSelect={selectGameMode} />
               <ColorPickerPanel
                 hsva={hsva}
                 colorScale={colorScale}
@@ -412,9 +409,10 @@ function App() {
                     color={color}
                     padRotation={padRotation}
                     shipPosition={shipPositionFromServer}
-                    onPosition={({ r, theta }) =>
-                      sendTouchPositionEvent(r, normalizeRadians(-theta))
-                    }
+                    onPosition={(position) => {
+                      const { r, theta } = mirrorPolarX(position);
+                      sendTouchPositionEvent(r, theta);
+                    }}
                     onRotationCommit={onPadRotationCommit}
                     showToolbar={false}
                     isCalibrating={padCalibrating}

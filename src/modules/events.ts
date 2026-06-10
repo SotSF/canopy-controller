@@ -87,7 +87,9 @@ const BASE_DELAY_MS = 500;
 export type ConnectionStatus = "connected" | "disconnected";
 
 const statusListeners = new Set<(status: ConnectionStatus) => void>();
-const shipPositionListeners = new Set<(position: { r: number; theta: number }) => void>();
+const shipPositionListeners = new Set<
+  (position: { r: number; theta: number }) => void
+>();
 const gameDataListeners = new Set<(gameData: GameData) => void>();
 let currentStatus: ConnectionStatus = "disconnected";
 let websocket: WebSocket;

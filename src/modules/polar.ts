@@ -43,3 +43,9 @@ export const normalizeRadians = (radians: number) => {
   if (angle < -Math.PI) angle += twoPi;
   return angle;
 };
+
+/** Negate X in cartesian form; r unchanged. */
+export const mirrorPolarX = ({ r, theta }: Polar): Polar => ({
+  r,
+  theta: normalizeRadians(Math.PI - theta),
+});
