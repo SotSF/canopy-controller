@@ -261,7 +261,7 @@ function App() {
 
   const onPadRotationCommit = (rotation: number, delta: number) => {
     setPadRotation(normalizeRadians(rotation));
-    if (delta !== 0) sendRotateEvent(delta);
+    // if (delta !== 0) sendRotateEvent(delta);
   };
 
   const controlSchemes = Object.keys(controlSchemeLabels) as ControlScheme[];
