@@ -16,6 +16,7 @@ import { normalizeRadians, Polar } from "./modules/polar";
 import { ColorPickerPanel } from "./components/ColorPickerPanel";
 import { TouchPositionPad } from "./components/TouchPositionPad";
 import { controlSchemeLabels, ControlScheme } from "./modules/controlScheme";
+import { getGameDataMessage } from "./modules/gameDataMessages";
 import { useControlScheme } from "./hooks/useControlScheme";
 import { throttle } from "lodash";
 import "./App.css";
@@ -63,12 +64,6 @@ const sendButtonPressEvent = throttle(
     }),
   eventThrottleMs,
 );
-
-const sendRotateEvent = (angle: number) =>
-  sendEvent({
-    event: EventType.Rotate,
-    angle,
-  });
 
 const sendTouchPositionEvent = throttle(
   (r: number, theta: number) =>
@@ -177,6 +172,7 @@ function App() {
   );
   const [calibrated, setCalibrated] = useState(false);
   const [padRotation, setPadRotation] = useState(0);
+  const [padCalibrating, setPadCalibrating] = useState(false);
   const colorRef = useRef(color);
   colorRef.current = color;
   const connectionStatus = useConnectionStatus();
@@ -253,10 +249,13 @@ function App() {
 
   const onPadRotationCommit = (rotation: number, delta: number) => {
     setPadRotation(normalizeRadians(rotation));
-    if (delta !== 0) sendRotateEvent(delta);
+    // Do not send rotation to server. Rotation is client-side only concern.
   };
 
   const controlSchemes = Object.keys(controlSchemeLabels) as ControlScheme[];
+  const gameDataMessage = gameData
+    ? getGameDataMessage(gameData.displayMessageId)
+    : undefined;
 
   return (
     <div
@@ -291,10 +290,9 @@ function App() {
         )}
       </div>
 
-      {gameData && (
+      {gameDataMessage && (
         <div className="game-data-readout" aria-live="polite">
-          received displaymessageid {gameData.displayMessageId}, gameid{" "}
-          {gameData.gameId}
+          {gameDataMessage}
         </div>
       )}
 
@@ -359,13 +357,61 @@ function App() {
 
           {scheme === "globalPosition" && (
             <div className="control-panel control-panel--global-position">
-              <TouchPositionPad
-                color={color}
-                padRotation={padRotation}
-                shipPosition={shipPositionFromServer}
-                onPosition={({ r, theta }) => sendTouchPositionEvent(r, theta)}
-                onRotationCommit={onPadRotationCommit}
-              />
+              <div className="global-position-layout">
+                <div className="global-position-toolbar">
+                  {padCalibrating ? (
+                    <button
+                      type="button"
+                      className="touch-position-pad-toolbar-button touch-position-pad-toolbar-button--done"
+                      onClick={() => setPadCalibrating(false)}
+                    >
+                      Done
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="touch-position-pad-toolbar-button"
+                      onClick={() => setPadCalibrating(true)}
+                    >
+                      Calibrate
+                    </button>
+                  )}
+                </div>
+                <button
+                  className="button global-position-button global-position-button--l"
+                  onTouchStart={() => sendButtonPressEvent(Button.L)}
+                  onClick={() =>
+                    !("ontouchstart" in document.documentElement) &&
+                    sendButtonPressEvent(Button.L)
+                  }
+                >
+                  L
+                </button>
+                <div className="global-position-pad">
+                  <TouchPositionPad
+                    color={color}
+                    padRotation={padRotation}
+                    shipPosition={shipPositionFromServer}
+                    onPosition={({ r, theta }) =>
+                      sendTouchPositionEvent(r, normalizeRadians(-theta))
+                    }
+                    onRotationCommit={onPadRotationCommit}
+                    showToolbar={false}
+                    isCalibrating={padCalibrating}
+                    onIsCalibratingChange={setPadCalibrating}
+                  />
+                </div>
+                <button
+                  className="button global-position-button global-position-button--r"
+                  onTouchStart={() => sendButtonPressEvent(Button.R)}
+                  onClick={() =>
+                    !("ontouchstart" in document.documentElement) &&
+                    sendButtonPressEvent(Button.R)
+                  }
+                >
+                  R
+                </button>
+              </div>
             </div>
           )}
 

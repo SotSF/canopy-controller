@@ -3,7 +3,9 @@ export const enum EventType {
   ChangeColor,
   Press,
   Gyro,
+  /** @deprecated No longer sent. Pad rotation is a client-side-only concern. */
   Rotate,
+  /** @deprecated No longer used. */
   CalibrationStatus,
   ShipPosition,
   TouchPosition,
@@ -37,10 +39,12 @@ export type PlayerEvent =
       beta: number;
       gamma: number;
     }
+  /** @deprecated EventType.Rotate is no longer sent by the client. */
   | {
       event: EventType.Rotate;
       angle: number;
     }
+  /** @deprecated EventType.CalibrationStatus is no longer used. */
   | {
       event: EventType.CalibrationStatus;
       calibrated: boolean;
@@ -222,11 +226,11 @@ export const subscribeGameData = (listener: (gameData: GameData) => void) => {
     0x00 0x00 0x00 0x00 < float data 1 (beta)
     0x00 0x00 0x00 0x00 < float data 2 (gamma)
 
-  EventType.Rotate:
+  EventType.Rotate (deprecated — no longer sent):
     0x00                < Event type
     0x00 0x00 0x00 0x00 < float data 0 (angle increment in radians)
 
-  EventType.CalibrationStatus:
+  EventType.CalibrationStatus (deprecated — no longer used):
     0x00                < Event type
     0x00                < calibration done flag (0 = calibrating, 1 = done)
 

@@ -194,26 +194,32 @@ body.joysticks-hidden footer {
 }
 
 .touch-position-pad-stack {
+  --touch-pad-glow-inset: 1.125rem;
   --touch-pad-ui-offset: 9rem;
   --touch-pad-size: min(
-    calc(100vw - 1rem),
-    calc(100dvh - var(--touch-pad-ui-offset))
+    calc(100vw - 1rem - 2 * var(--touch-pad-glow-inset)),
+    calc(100dvh - var(--touch-pad-ui-offset) - 2 * var(--touch-pad-glow-inset))
   );
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
+  min-height: 0;
+  overflow: visible;
 }
 
 .touch-position-pad-stage {
-  width: var(--touch-pad-size);
-  height: var(--touch-pad-size);
+  width: min(var(--touch-pad-size), 100%);
+  height: min(var(--touch-pad-size), 100%);
+  aspect-ratio: 1;
+  padding: var(--touch-pad-glow-inset);
+  box-sizing: content-box;
   position: relative;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  min-height: 0;
   overflow: visible;
-  contain: layout style;
 }
 
 .touch-position-pad-rotator {
@@ -221,7 +227,7 @@ body.joysticks-hidden footer {
   inset: 0;
   transform-origin: 50% 50%;
   will-change: transform;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 50%;
 }
 
@@ -611,8 +617,112 @@ body.joysticks-hidden footer {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  overflow: hidden;
+  overflow: visible;
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
+.global-position-layout {
+  display: grid;
+  width: 100%;
+  max-width: min(100%, 800px);
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "toolbar toolbar"
+    "left-btn right-btn"
+    "pad pad";
+  align-items: end;
+  justify-items: stretch;
+  gap: 0.65rem 0.75rem;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+  --global-position-button-width: min(8rem, 22dvh);
+  --touch-pad-glow-inset: 1.125rem;
+  --touch-pad-ui-offset: 12rem;
+  --touch-pad-size: min(
+    calc(100vw - 1rem - 2 * var(--touch-pad-glow-inset)),
+    calc(100dvh - var(--touch-pad-ui-offset) - 2 * var(--touch-pad-glow-inset))
+  );
+}
+
+.global-position-toolbar {
+  grid-area: toolbar;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.global-position-button--l {
+  grid-area: left-btn;
+}
+
+.global-position-button--r {
+  grid-area: right-btn;
+}
+
+.global-position-pad {
+  grid-area: pad;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: visible;
+}
+
+.global-position-button {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 4.5em;
+  font-size: 2em;
+  border-radius: 1.25em;
+}
+
+.global-position-pad .touch-position-pad-stack {
+  --touch-pad-ui-offset: inherit;
+  --touch-pad-size: inherit;
+  --touch-pad-glow-inset: inherit;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+@media (orientation: landscape) {
+  .global-position-layout {
+    grid-template-columns: var(--global-position-button-width) minmax(
+        0,
+        auto
+      ) var(--global-position-button-width);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      "toolbar toolbar toolbar"
+      "left-btn pad right-btn";
+    align-items: center;
+    justify-items: center;
+    --touch-pad-ui-offset: 5.5rem;
+    --touch-pad-size: min(
+      calc(100dvh - var(--touch-pad-ui-offset) - 2 * var(--touch-pad-glow-inset)),
+      calc(
+        100vw - 2 * var(--global-position-button-width) - 2.5rem -
+          2 * var(--touch-pad-glow-inset)
+      )
+    );
+  }
+
+  .global-position-button {
+    width: var(--global-position-button-width);
+    height: 100%;
+    min-height: var(--touch-pad-size);
+    align-self: stretch;
+  }
+
+  .global-position-pad {
+    align-self: center;
+  }
 }
 
 .control-panel--joysticks {
@@ -682,8 +792,15 @@ body.joysticks-hidden footer {
     padding: 0.65em 1.5em;
   }
 
-  .touch-position-pad-stack {
-    --touch-pad-ui-offset: 6.5rem;
+  .global-position-layout {
+    --global-position-button-width: min(7rem, 28dvh);
+    --touch-pad-ui-offset: 4.5rem;
+    gap: 0.5rem 0.35rem;
+    padding: 0 0.35rem;
+  }
+
+  .global-position-button {
+    font-size: 2.25em;
   }
 
   .touch-position-pad-calibrate-help {

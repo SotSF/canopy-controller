@@ -5,13 +5,14 @@ const DEBUG = false;
 const PORT = Number(process.env.WEBSOCKET_PORT || 9431);
 const HOST = "0.0.0.0";
 
+// Rotate and CalibrationStatus are deprecated — kept for protocol/debug parsing only.
 const EventType = {
   Update: 1,
   ChangeColor: 2,
   Press: 3,
   Gyro: 4,
-  Rotate: 5,
-  CalibrationStatus: 6,
+  Rotate: 5, // deprecated: pad rotation is client-side only
+  CalibrationStatus: 6, // deprecated
   ShipPosition: 7,
   TouchPosition: 8,
   GameDataUpdate: 9,

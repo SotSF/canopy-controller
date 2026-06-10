@@ -14,6 +14,9 @@ type TouchPositionPadProps = {
   shipPosition: Polar | null;
   onPosition: (position: Polar) => void;
   onRotationCommit: (rotation: number, delta: number) => void;
+  showToolbar?: boolean;
+  isCalibrating?: boolean;
+  onIsCalibratingChange?: (isCalibrating: boolean) => void;
 };
 
 const ROTATION_COMMIT_MS = 15;
@@ -42,6 +45,9 @@ export const TouchPositionPad = ({
   shipPosition,
   onPosition,
   onRotationCommit,
+  showToolbar = true,
+  isCalibrating: isCalibratingProp,
+  onIsCalibratingChange,
 }: TouchPositionPadProps) => {
   const padRef = useRef<HTMLDivElement>(null);
   const rotatorRef = useRef<HTMLDivElement>(null);
@@ -53,7 +59,12 @@ export const TouchPositionPad = ({
     pointerAngle: number;
     padRotation: number;
   } | null>(null);
-  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [isCalibratingInternal, setIsCalibratingInternal] = useState(false);
+  const isCalibratingControlled = isCalibratingProp !== undefined;
+  const isCalibrating = isCalibratingControlled
+    ? isCalibratingProp
+    : isCalibratingInternal;
+  const prevCalibratingRef = useRef(isCalibrating);
   const [hasHandleInteraction, setHasHandleInteraction] = useState(false);
   const [calibratingRotation, setCalibratingRotation] = useState(padRotation);
   const [indicator, setIndicator] = useState<{ x: number; y: number } | null>(
@@ -71,6 +82,24 @@ export const TouchPositionPad = ({
   );
 
   useEffect(() => () => commitRotation.cancel(), [commitRotation]);
+
+  const setIsCalibrating = (next: boolean) => {
+    onIsCalibratingChange?.(next);
+    if (!isCalibratingControlled) {
+      setIsCalibratingInternal(next);
+    }
+  };
+
+  useEffect(() => {
+    if (prevCalibratingRef.current && !isCalibrating) {
+      commitRotation.flush();
+      setHasHandleInteraction(false);
+    } else if (!prevCalibratingRef.current && isCalibrating) {
+      setCalibratingRotation(rotationRef.current);
+      setHasHandleInteraction(false);
+    }
+    prevCalibratingRef.current = isCalibrating;
+  }, [isCalibrating, commitRotation]);
 
   useEffect(() => {
     rotationRef.current = padRotation;
@@ -180,12 +209,6 @@ export const TouchPositionPad = ({
     commitRotation.flush();
   };
 
-  const onDoneCalibrating = () => {
-    commitRotation.flush();
-    setHasHandleInteraction(false);
-    setIsCalibrating(false);
-  };
-
   const shipPercent = shipPosition ? polarToPadPercent(shipPosition) : null;
   const handleAngleRad = calibratingRotation + HANDLE_LOCAL_THETA;
   const handlePosition = polarToPadPercent({
@@ -195,29 +218,27 @@ export const TouchPositionPad = ({
 
   return (
     <div className="touch-position-pad-stack">
-      <div className="touch-position-pad-toolbar">
-        {isCalibrating ? (
-          <button
-            type="button"
-            className="touch-position-pad-toolbar-button touch-position-pad-toolbar-button--done"
-            onClick={onDoneCalibrating}
-          >
-            Done
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="touch-position-pad-toolbar-button"
-            onClick={() => {
-              setCalibratingRotation(rotationRef.current);
-              setHasHandleInteraction(false);
-              setIsCalibrating(true);
-            }}
-          >
-            Calibrate
-          </button>
-        )}
-      </div>
+      {showToolbar && (
+        <div className="touch-position-pad-toolbar">
+          {isCalibrating ? (
+            <button
+              type="button"
+              className="touch-position-pad-toolbar-button touch-position-pad-toolbar-button--done"
+              onClick={() => setIsCalibrating(false)}
+            >
+              Done
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="touch-position-pad-toolbar-button"
+              onClick={() => setIsCalibrating(true)}
+            >
+              Calibrate
+            </button>
+          )}
+        </div>
+      )}
       {isCalibrating && (
         <p className="touch-position-pad-calibrate-help">
           Click and drag the white circle until what you see here lines up with
